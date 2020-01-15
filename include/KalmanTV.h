@@ -42,9 +42,11 @@ namespace KalmanTV {
     int nState_; ///< Number of state dimensions.
     VectorXd tmuState_; ///< Temporary storage for mean vector.
     VectorXd tmuState2_;
+    VectorXd tmuState3_;
     MatrixXd tvarState_; ///< Temporary storage for variance matrix.
     MatrixXd tvarState2_;
     MatrixXd tvarState3_;
+    MatrixXd tvarState4_;
     VectorXd tmuMeas_;
     MatrixXd twgtMeas_;
     MatrixXd twgtMeas2_;
@@ -210,9 +212,11 @@ namespace KalmanTV {
     // temporary storage
     tmuState_ = VectorXd::Zero(nState_);
     tmuState2_ = VectorXd::Zero(nState_);
+    tmuState3_ = VectorXd::Zero(nState_);
     tvarState_ = MatrixXd::Identity(nState_, nState_);
     tvarState2_ = MatrixXd::Identity(nState_, nState_);
     tvarState3_ = MatrixXd::Identity(nState_, nState_);
+    tvarState4_ = MatrixXd::Identity(nState_, nState_);
     tmuMeas_ = VectorXd::Zero(nMeas_);
     tvarMeas_ = MatrixXd::Identity(nMeas_, nMeas_);
     twgtMeas_ = MatrixXd::Zero(nMeas_, nState_);
@@ -408,24 +412,24 @@ namespace KalmanTV {
     lltState_.solveInPlace(tvarState_); // equivalent to varState_temp_tilde
     tmuState_.noalias() = xState_next - muState_pred;
     // std::cout << "tvarState_ = " << tvarState_ << std::endl;
-    tmuState_ = tvarState_.adjoint() * tmuState_ + muState_filt;
-    muState_sim.noalias() = tmuState_;
+    tmuState2_.noalias() = tvarState_.adjoint() * tmuState_ + muState_filt;
+    muState_sim.noalias() = tmuState2_;
     // std::cout << "tmuState_= " << tmuState_ << std::endl;
-    tvarState2_ = varState_filt - tvarState_.adjoint() * tvarState2_;
-    tvarState2_  = tvarState2_ * tvarState2_.adjoint();
-    varState_sim.noalias() = tvarState2_; // testing
+    tvarState3_.noalias() = varState_filt - tvarState_.adjoint() * tvarState2_;
+    tvarState3_  = tvarState3_ * tvarState3_.adjoint(); // only for testing (requires semi-positive)
+    varState_sim.noalias() = tvarState3_; // testing
     // std::cout << "tvarState2_ =" << tvarState2_ << std::endl; 
     // Generate random draw
     std::random_device rd{};
     std::mt19937 gen{rd()};
     for (int i=0; i<nState_; ++i) {
       std::normal_distribution<double> d(0.0,1.0);
-      tmuState2_(i) = d(gen);
+      tmuState3_(i) = d(gen);
     }
     // Cholesky
-    LLT<MatrixXd> lltvarState_(tvarState2_);
-    tvarState3_ = lltvarState_.matrixL();
-    xState_smooth.noalias() = tmuState_ +  tvarState3_ * tmuState2_;
+    LLT<MatrixXd> lltvarState_(tvarState3_);
+    tvarState4_ = lltvarState_.matrixL();
+    xState_smooth.noalias() = tmuState2_ +  tvarState4_ * tmuState3_;
     return;
   }
   /// Raw buffer equivalent.
