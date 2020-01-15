@@ -1,7 +1,5 @@
 import unittest
 import numpy as np
-import scipy as sp
-import scipy.linalg
 from kalmantv.cython.kalmantv import PyKalmanTV
 
 
@@ -92,7 +90,7 @@ def smooth_sim(xState_next, muState_filt,
     muState_sim = muState_filt + varState_temp_tilde.dot(xState_next - muState_pred)
     varState_sim = varState_filt - varState_temp_tilde.dot(varState_temp.T)
     varState_sim2 = varState_sim.dot(varState_sim.T) # Make sure it is semi positive definite
-    xState_smooth = np.random.multivariate_normal(muState_sim, varState_sim2, tol=1e-6)
+    xState_smooth = np.random.multivariate_normal(muState_sim, varState_sim2)
     return xState_smooth, muState_sim, varState_sim2
 
 def smooth(xState_next, muState_next,
