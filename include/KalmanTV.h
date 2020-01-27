@@ -3,9 +3,11 @@
 #ifndef KalmanTV_h
 #define KalmanTV_h 1
 
+#undef NDEBUG
+#define EIGEN_RUNTIME_NO_MALLOC
 #include <Eigen/Dense>
 // #include <random>
-// #include <iostream>
+#include <iostream>
 
 namespace KalmanTV {
   using namespace Eigen;
@@ -208,11 +210,19 @@ namespace KalmanTV {
                 const double* varState_pred,
                 const double* wgtState,
 		const double* randState); 
+    void printX() {
+      int n = 2;
+      int p = 3;
+      MatrixXd X = MatrixXd::Constant(n, p, 3.14);
+      std::cout << "X =\n" << X << std::endl;
+      return;
+    }
   };
 
   /// @param[in] nMeas Number of measurement variables.
   /// @param[in] nState Number of state variables.
   inline KalmanTV::KalmanTV(int nMeas, int nState) {
+    Eigen::internal::set_is_malloc_allowed(true);
     // problem dimensions
     nMeas_ = nMeas;
     nState_ = nState;
@@ -231,6 +241,7 @@ namespace KalmanTV {
     // cholesky solvers
     lltMeas_.compute(MatrixXd::Identity(nMeas_, nMeas_));
     lltState_.compute(MatrixXd::Identity(nState_, nState_));
+    Eigen::internal::set_is_malloc_allowed(false);
   }
 
   /// @param[out] muState_pred Predicted state mean `mu_n|n-1`.
@@ -247,12 +258,12 @@ namespace KalmanTV {
                                 cRefVectorXd& muState,
                                 cRefMatrixXd& wgtState,
                                 cRefMatrixXd& varState) {
-    // check if this can be done without temporary allocation
-    muState_pred.noalias() = wgtState * muState_past + muState;
-    // need to assign to temporary for matrix triple product
+    muState_pred.noalias() = wgtState * muState_past;
+    muState_pred += muState;
+    // // need to assign to temporary for matrix triple product
     tvarState_.noalias() = wgtState * varState_past;
-    // temporary allocation?
-    varState_pred.noalias() = tvarState_ * wgtState.adjoint() + varState;
+    varState_pred.noalias() = tvarState_ * wgtState.adjoint();
+    varState_pred += varState;
     return;
   }
   /// @note Arguments updated to be identical to those with `Eigen` types, so we don't need to re-document.
@@ -263,6 +274,7 @@ namespace KalmanTV {
                                 const double* muState,
                                 const double* wgtState,
                                 const double* varState) {
+    // Eigen::internal::set_is_malloc_allowed(true);
     MapVectorXd muState_pred_(muState_pred, nState_);
     MapMatrixXd varState_pred_(varState_pred, nState_, nState_);
     cMapVectorXd muState_past_(muState_past, nState_);
@@ -270,6 +282,7 @@ namespace KalmanTV {
     cMapVectorXd muState_(muState, nState_);
     cMapMatrixXd wgtState_(wgtState, nState_, nState_);
     cMapMatrixXd varState_(varState, nState_, nState_);
+    // Eigen::internal::set_is_malloc_allowed(false);
     predict(muState_pred_, varState_pred_,
             muState_past_, varState_past_,
             muState_, wgtState_, varState_);

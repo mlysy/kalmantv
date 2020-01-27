@@ -1,6 +1,7 @@
 cdef extern from "KalmanTV.h" namespace "KalmanTV":
     cdef cppclass KalmanTV:
         KalmanTV(int, int) except +
+        void printX() except +
         void predict(double * muState_pred,
                      double * varState_pred,
                      const double * muState_past,

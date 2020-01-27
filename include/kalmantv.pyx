@@ -9,6 +9,9 @@ cdef class PyKalmanTV:
     def __dealloc__(self):
         del self.ktv
 
+    def printX(self):
+        self.ktv.printX()
+
     def predict(self,
                 double[::1] muState_pred,
                 double[::1, :] varState_pred,
