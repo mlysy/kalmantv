@@ -24,13 +24,6 @@ ext_modules = [Extension("kalmantv.cython",
                              np.get_include(),
                              "include/eigen-3.3.7"],
                          language='c++')]
-# ext_modules = [Extension("kalmantv.cython.{}".format(mod),
-#                          ["include/{}".format(mod)+ext],
-#                          include_dirs=[
-#                              np.get_include(),
-#                              "include/eigen-3.3.7"],
-#                          language='c++')
-#                for mod in cpp_modules]
 
 setup(
     name="kalmantv",
@@ -46,8 +39,6 @@ setup(
     cmdclass=cmdclass,
     ext_modules=ext_modules,
 
-    # Project uses reStructuredText, so ensure that the docutils get
-    # installed or upgraded on the target machine
     install_requires=['numpy', 'scipy'],
     setup_requires=['setuptools>=38'],
 )
