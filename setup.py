@@ -18,13 +18,19 @@ cpp_modules = ['kalmantv']
 
 # cpp modules
 ext = '.pyx' if USE_CYTHON else '.cpp'
-ext_modules = [Extension("kalmantv.cython.{}".format(mod),
-                         ["include/{}".format(mod)+ext],
+ext_modules = [Extension("kalmantv.cython",
+                         ["include/{}".format(mod)+ext for mod in cpp_modules],
                          include_dirs=[
                              np.get_include(),
                              "include/eigen-3.3.7"],
-                         language='c++')
-               for mod in cpp_modules]
+                         language='c++')]
+# ext_modules = [Extension("kalmantv.cython.{}".format(mod),
+#                          ["include/{}".format(mod)+ext],
+#                          include_dirs=[
+#                              np.get_include(),
+#                              "include/eigen-3.3.7"],
+#                          language='c++')
+#                for mod in cpp_modules]
 
 setup(
     name="kalmantv",

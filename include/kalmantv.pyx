@@ -1,10 +1,10 @@
-from KalmanTV cimport KalmanTV
+from KalmanTV cimport KalmanTV as CKalmanTV
 
-cdef class PyKalmanTV:
-    cdef KalmanTV * ktv
+cdef class KalmanTV:
+    cdef CKalmanTV * ktv
 
     def __cinit__(self, int nMeas, int nState):
-        self.ktv = new KalmanTV(nMeas, nState)
+        self.ktv = new CKalmanTV(nMeas, nState)
 
     def __dealloc__(self):
         del self.ktv
