@@ -40,8 +40,6 @@ cdef extern from "KalmanTV.h" namespace "KalmanTV":
                        const double* varState_pred,
                        const double* wgtState) 
         void smooth_sim(double* xState_smooth,
-                        double* muState_sim,
-                        double* varState_sim,
                         const double* xState_next,
                         const double* muState_filt,
                         const double* varState_filt,
@@ -50,8 +48,6 @@ cdef extern from "KalmanTV.h" namespace "KalmanTV":
                         const double* wgtState,
                         const double* randState)
         void smooth(double* xState_smooth,
-                    double* muState_sim,
-                    double* varState_sim,
                     double* muState_smooth,
                     double* varState_smooth,
                     const double* xState_next,

@@ -81,8 +81,6 @@ cdef class PyKalmanTV:
 
     def smooth_sim(self,
                    double[::1] xState_smooth,
-                   double[::1] muState_sim,
-                   double[::1, :] varState_sim,
                    const double[::1] xState_next,
                    const double[::1] muState_filt,
                    const double[::1, :] varState_filt,
@@ -90,8 +88,7 @@ cdef class PyKalmanTV:
                    const double[::1, :] varState_pred,
                    const double[::1, :] wgtState,
                    const double[::1] randState):
-        self.ktv.smooth_sim(& xState_smooth[0], & muState_sim[0], 
-                            & varState_sim[0, 0], & xState_next[0],
+        self.ktv.smooth_sim(& xState_smooth[0], & xState_next[0],
                             & muState_filt[0], & varState_filt[0, 0],
                             & muState_pred[0], & varState_pred[0, 0],
                             & wgtState[0, 0], & randState[0])
@@ -99,8 +96,6 @@ cdef class PyKalmanTV:
 
     def smooth(self,
                double[::1] xState_smooth,
-               double[::1] muState_sim,
-               double[::1, :] varState_sim,
                double[::1] muState_smooth,
                double[::1, :] varState_smooth,
                const double[::1] xState_next,
@@ -112,8 +107,7 @@ cdef class PyKalmanTV:
                const double[::1, :] varState_pred,
                const double[::1, :] wgtState,
                const double[::1] randState):
-        self.ktv.smooth(& xState_smooth[0], & muState_sim[0], 
-                        & varState_sim[0, 0], & muState_smooth[0],
+        self.ktv.smooth(& xState_smooth[0], & muState_smooth[0],
                         & varState_smooth[0, 0], & xState_next[0],
                         & muState_next[0], & varState_next[0, 0],
                         & muState_filt[0], & varState_filt[0, 0],

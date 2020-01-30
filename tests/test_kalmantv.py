@@ -89,11 +89,10 @@ def smooth_sim(xState_next, muState_filt,
     varState_temp_tilde = np.linalg.solve(varState_pred, varState_temp.T).T
     muState_sim = muState_filt + varState_temp_tilde.dot(xState_next - muState_pred)
     varState_sim = varState_filt - varState_temp_tilde.dot(varState_temp.T)
-    varState_sim2 = varState_sim.dot(varState_sim.T) # Make sure it is semi positive definite
-    # xState_smooth = np.random.multivariate_normal(muState_sim, varState_sim2)
-    xState_smooth = np.linalg.cholesky(varState_sim2).dot(randState)
+    varState_sim2 = varState_sim.dot(varState_sim.T) # Make sure it is semi positive definite for testing
+    xState_smooth = np.linalg.cholesky(varState_sim2).dot(randState) # Use varState_sim instead in the real algorithm
     xState_smooth += muState_sim
-    return xState_smooth, muState_sim, varState_sim2
+    return xState_smooth
 
 def smooth(xState_next, muState_next,
            varState_next, muState_filt,
@@ -112,7 +111,7 @@ def smooth(xState_next, muState_next,
                   muState_pred = muState_pred,
                   varState_pred = varState_pred,
                   wgtState = wgtState) 
-    xState_smooth, muState_sim, varState_sim = \
+    xState_smooth = \
         smooth_sim(xState_next = xState_next,
                    muState_filt = muState_filt,
                    varState_filt = varState_filt,
@@ -120,8 +119,7 @@ def smooth(xState_next, muState_next,
                    varState_pred = varState_pred,
                    wgtState = wgtState,
                    randState = randState)
-    return muState_smooth, varState_smooth, xState_smooth, \
-        muState_sim, varState_sim
+    return muState_smooth, varState_smooth, xState_smooth
 # # check calculation
 # nMeas = 2
 # nState = 3
@@ -265,22 +263,17 @@ class KalmanTVTest(unittest.TestCase):
         wgtState = rand_mat(nState, pd=False)
         randState = rand_vec(nState)
         # pure python
-        xState_smooth, muState_sim, varState_sim = \
+        xState_smooth = \
             smooth_sim(xState_next, muState_filt, 
                        varState_filt, muState_pred, 
                        varState_pred, wgtState, randState)
         # cython
         ktv = PyKalmanTV(nMeas, nState)
         xState_smooth2 = np.empty(nState)
-        muState_sim2 = np.empty(nState)
-        varState_sim2 = np.empty((nState, nState), order='F')
-        ktv.smooth_sim(xState_smooth2, muState_sim2,
-                       varState_sim2, xState_next,
+        ktv.smooth_sim(xState_smooth2, xState_next,
                        muState_filt, varState_filt,
                        muState_pred, varState_pred,
                        wgtState, randState)
-        self.assertAlmostEqual(rel_err(muState_sim, muState_sim2), 0.0)
-        self.assertAlmostEqual(rel_err(varState_sim, varState_sim2), 0.0)
         self.assertAlmostEqual(rel_err(xState_smooth, xState_smooth2), 0.0)
     
     def test_smooth(self):
@@ -296,21 +289,17 @@ class KalmanTVTest(unittest.TestCase):
         wgtState = rand_mat(nState, pd=False)
         randState = rand_vec(nState)
         # pure python
-        muState_smooth, varState_smooth, xState_smooth, \
-            muState_sim, varState_sim = \
-                smooth(xState_next, muState_next,
-                       varState_next, muState_filt, 
-                       varState_filt, muState_pred, 
-                       varState_pred, wgtState, randState)
+        muState_smooth, varState_smooth, xState_smooth = \
+            smooth(xState_next, muState_next,
+                    varState_next, muState_filt, 
+                    varState_filt, muState_pred, 
+                    varState_pred, wgtState, randState)
         # cython
         ktv = PyKalmanTV(nMeas, nState)
         xState_smooth2 = np.empty(nState)
-        muState_sim2 = np.empty(nState)
-        varState_sim2 = np.empty((nState, nState), order='F')
         muState_smooth2 = np.empty(nState)
         varState_smooth2 = np.empty((nState, nState), order='F')
-        ktv.smooth(xState_smooth2, muState_sim2,
-                   varState_sim2, muState_smooth2,
+        ktv.smooth(xState_smooth2, muState_smooth2,
                    varState_smooth2, xState_next,
                    muState_next, varState_next,
                    muState_filt, varState_filt,
@@ -318,8 +307,6 @@ class KalmanTVTest(unittest.TestCase):
                    wgtState, randState)
         self.assertAlmostEqual(rel_err(muState_smooth, muState_smooth2), 0.0)
         self.assertAlmostEqual(rel_err(varState_smooth, varState_smooth2), 0.0)
-        self.assertAlmostEqual(rel_err(muState_sim, muState_sim2), 0.0)
-        self.assertAlmostEqual(rel_err(varState_sim, varState_sim2), 0.0)
         self.assertAlmostEqual(rel_err(xState_smooth, xState_smooth2), 0.0)
 
 if __name__ == '__main__':
