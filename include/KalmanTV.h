@@ -3,8 +3,8 @@
 #ifndef KalmanTV_h
 #define KalmanTV_h 1
 
-#undef NDEBUG
-#define EIGEN_RUNTIME_NO_MALLOC
+// #undef NDEBUG
+// #define EIGEN_RUNTIME_NO_MALLOC
 #include <Eigen/Dense>
 #include <iostream>
 
@@ -15,12 +15,24 @@ namespace KalmanTV {
   ///
   /// Model is
   ///
-  /// `x_n = c_n + T_n x_n-1 + R_n^{1/2} eps_n`
-  /// `y_n = d_n + W_n x_n + H_n^{1/2} eta_n`
+  /// ~~~~
+  /// x_n = c_n + T_n x_n-1 + R_n^{1/2} eps_n   
+  /// y_n = d_n + W_n x_n + H_n^{1/2} eta_n,     
+  /// ~~~~
   ///
-  /// Naming conventions:
+  /// where `x_n` is the state variable of dimension `s`, `y_n` is the measurement variable of dimension `m`, and `eps_n ~iid N(0, I_s)` and `eta_n ~iid N(0, I_m)` are noise variables independent of each other.  The `KalmanTV` library uses the following naming conventions to describe the variables above:
   ///
-  /// - `meas` and `state`.
+  /// - The state-level variables `x_n`, `c_n`, `T_n`, `R_n` and `eps_n` are denoted by `state`.
+  /// - The measurement-level variables `y_n`, `d_n`, `W_n`, `H_n` and `eta_n` are denoted by `meas`.
+  /// - The output variables `x_n` and `y_n` are denoted by `x`.
+  /// - The mean vectors `c_n` and `d_n` are denoted by `mu`.
+  /// - The variance matrices `R_n` and `H_n` are denoted by `var`.
+  /// - The weight matrices `T_n` and `W_n` are denoted by `wgt`.
+  /// - The conditional means and variances are denoted by `mu_n|m = E[x_n | y_0:m]` and `Sigma_n|m = var(x_n | y_0:m)`, and jointly as `theta_n|m = (mu_n|m, Sigma_n|m)`.
+  /// - Similarly, `x_n|m` denotes a draw from `p(x_n | x_n+1, y_0:m)`.
+  ///
+  /// **OLD CONVENTIONS**
+  ///
   /// - `x`, `mu`, `var`, `wgt`.
   /// - `_past`: `n-1|n-1` (filter)
   /// - `_pred`: `n|n-1`
@@ -201,20 +213,20 @@ namespace KalmanTV {
                 const double* muState_pred,
                 const double* varState_pred,
                 const double* wgtState,
-		            const double* randState); 
-    void printX() {
-      int n = 2;
-      int p = 3;
-      MatrixXd X = MatrixXd::Constant(n, p, 3.14);
-      std::cout << "X =\n" << X << std::endl;
-      return;
-    }
+		const double* randState); 
+    // void printX() {
+    //   int n = 2;
+    //   int p = 3;
+    //   MatrixXd X = MatrixXd::Constant(n, p, 3.14);
+    //   std::cout << "X =\n" << X << std::endl;
+    //   return;
+    // }
   };
 
   /// @param[in] nMeas Number of measurement variables.
   /// @param[in] nState Number of state variables.
   inline KalmanTV::KalmanTV(int nMeas, int nState) {
-    Eigen::internal::set_is_malloc_allowed(true);
+    // Eigen::internal::set_is_malloc_allowed(true);
     // problem dimensions
     nMeas_ = nMeas;
     nState_ = nState;
@@ -234,7 +246,7 @@ namespace KalmanTV {
     // cholesky solvers
     lltMeas_.compute(MatrixXd::Identity(nMeas_, nMeas_));
     lltState_.compute(MatrixXd::Identity(nState_, nState_));
-    Eigen::internal::set_is_malloc_allowed(false);
+    // Eigen::internal::set_is_malloc_allowed(false);
   }
 
   /// @param[out] muState_pred Predicted state mean `mu_n|n-1`.
@@ -474,7 +486,7 @@ namespace KalmanTV {
                                    cRefVectorXd& muState_pred,
                                    cRefMatrixXd& varState_pred,
                                    cRefMatrixXd& wgtState,
-				                           cRefVectorXd& randState) {
+				   cRefVectorXd& randState) {
     tvarState_.noalias() = wgtState * varState_filt.adjoint();
     tvarState2_.noalias() = tvarState_; // equivalent to varState_temp
     lltState_.compute(varState_pred); 
@@ -504,7 +516,7 @@ namespace KalmanTV {
                                    const double* muState_pred,
                                    const double* varState_pred,
                                    const double* wgtState,
-				                           const double* randState) {
+				   const double* randState) {
     MapVectorXd xState_smooth_(xState_smooth, nState_);
     cMapVectorXd xState_next_(xState_next, nState_);
     cMapVectorXd muState_filt_(muState_filt, nState_);
@@ -542,7 +554,7 @@ namespace KalmanTV {
                                cRefVectorXd& muState_pred,
                                cRefMatrixXd& varState_pred,
                                cRefMatrixXd& wgtState,
-			                         cRefVectorXd& randState) {
+			       cRefVectorXd& randState) {
     smooth_mv(muState_smooth, varState_smooth,
               muState_next, varState_next,
               muState_filt, varState_filt,
@@ -565,7 +577,7 @@ namespace KalmanTV {
                                const double* muState_pred,
                                const double* varState_pred,
                                const double* wgtState,
-			                         const double* randState) {
+			       const double* randState) {
     smooth_mv(muState_smooth, varState_smooth,
               muState_next, varState_next,
               muState_filt, varState_filt,
@@ -578,39 +590,5 @@ namespace KalmanTV {
   }                    
 } // end namespace KalmanTV
 
-// --- scratch -----------------------------------------------------------------
-
-// class KalmanTV {
-//  private:
-//   int nMeas_; ///< Number of measurement dimensions.
-//   int nState_; ///< Number of state dimensions.
-//   int nObs_; ///< Maximum number of observations.
-//   MatrixXd xMeas_; ///< Matrix of measurement vectors (columnwise).
-//   MatrixXd muMeas_; ///< Matrix of measurement means.
-//   MatrixXd wgtMeas_; ///< Matrix of measurement weights (columnwise concatenated).
-//   MatrixXd varMeas_; ///< Matrix of measurement variances.
-//   MatrixXd muState_; ///< Matrix of state means.
-//   MatrixXd wgtState_; ///< Matrix of state weights (transition matrices).
-//   MatrixXd varState_; ///< Matrix of state variances.
-//  public:
-//   /// Constructor.
-//   KalmanTV(int nMeas, int nState, int nObs);
-//   /// Setters and getters.
-//   void set_xMeas(const Ref<const VectorXd>& x, int i);
-//   void set_muMeas(const Ref<const VectorXd>& mu, int i);
-//   void set_wgtMeas(const Ref<const MatrixXd>& wgt, int i);
-//   void set_varMeas(const Ref<const MatrixXd>& var, int i);
-//   void set_muState(const Ref<const VectorXd>& mu, int i);
-//   void set_wgtState(const Ref<const MatrixXd>& wgt, int i);
-//   void set_varState(const Ref<const MatrixXd>& var, int i);
-//   void get_xMeas(Ref<VectorXd> x, int i);
-//   void get_muMeas(Ref<VectorXd> mu, int i);
-//   void get_wgtMeas(Ref<MatrixXd> wgt, int i);
-//   void get_varMeas(Ref<MatrixXd> var, int i);
-//   void get_muState(Ref<VectorXd> mu, int i);
-//   void get_wgtState(Ref<MatrixXd> wgt, int i);
-//   void get_varState(Ref<MatrixXd> var, int i);
-//   /// Perform a kalman 
-// };
 
 #endif
