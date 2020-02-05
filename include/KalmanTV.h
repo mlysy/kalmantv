@@ -178,7 +178,7 @@ namespace KalmanTV {
                     cRefVectorXd& muState_pred,
                     cRefMatrixXd& varState_pred,
                     cRefMatrixXd& wgtState,
-		    cRefVectorXd& randState);
+                    cRefVectorXd& randState);
     /// Raw buffer equivalent.                    
     void smooth_sim(double* xState_smooth,
                     const double* xState_next,
@@ -187,7 +187,7 @@ namespace KalmanTV {
                     const double* muState_pred,
                     const double* varState_pred,
                     const double* wgtState,
-		    const double* randState);    
+                    const double* randState);    
     /// Perfrom one step of both Kalman mean/variance and sampling smoothers.
     void smooth(RefVectorXd xState_smooth,
                 RefVectorXd muState_smooth,
@@ -213,7 +213,7 @@ namespace KalmanTV {
                 const double* muState_pred,
                 const double* varState_pred,
                 const double* wgtState,
-		const double* randState); 
+                const double* randState); 
     // void printX() {
     //   int n = 2;
     //   int p = 3;
@@ -486,7 +486,7 @@ namespace KalmanTV {
                                    cRefVectorXd& muState_pred,
                                    cRefMatrixXd& varState_pred,
                                    cRefMatrixXd& wgtState,
-				   cRefVectorXd& randState) {
+                                   cRefVectorXd& randState) {
     tvarState_.noalias() = wgtState * varState_filt.adjoint();
     tvarState2_.noalias() = tvarState_; // equivalent to varState_temp
     lltState_.compute(varState_pred); 
@@ -516,7 +516,7 @@ namespace KalmanTV {
                                    const double* muState_pred,
                                    const double* varState_pred,
                                    const double* wgtState,
-				   const double* randState) {
+                                   const double* randState) {
     MapVectorXd xState_smooth_(xState_smooth, nState_);
     cMapVectorXd xState_next_(xState_next, nState_);
     cMapVectorXd muState_filt_(muState_filt, nState_);
@@ -554,7 +554,7 @@ namespace KalmanTV {
                                cRefVectorXd& muState_pred,
                                cRefMatrixXd& varState_pred,
                                cRefMatrixXd& wgtState,
-			       cRefVectorXd& randState) {
+                               cRefVectorXd& randState) {
     smooth_mv(muState_smooth, varState_smooth,
               muState_next, varState_next,
               muState_filt, varState_filt,
@@ -577,7 +577,7 @@ namespace KalmanTV {
                                const double* muState_pred,
                                const double* varState_pred,
                                const double* wgtState,
-			       const double* randState) {
+                               const double* randState) {
     smooth_mv(muState_smooth, varState_smooth,
               muState_next, varState_next,
               muState_filt, varState_filt,
