@@ -3,114 +3,111 @@ from KalmanTV cimport KalmanTV as CKalmanTV
 cdef class KalmanTV:
     cdef CKalmanTV * ktv
 
-    def __cinit__(self, int nMeas, int nState):
-        self.ktv = new CKalmanTV(nMeas, nState)
+    def __cinit__(self, int n_meas, int n_state):
+        self.ktv = new CKalmanTV(n_meas, n_state)
 
     def __dealloc__(self):
         del self.ktv
 
-    def printX(self):
-        self.ktv.printX()
-
     def predict(self,
-                double[::1] muState_pred,
-                double[::1, :] varState_pred,
-                const double[::1] muState_past,
-                const double[::1, :] varState_past,
-                const double[::1] muState,
-                const double[::1, :] wgtState,
-                const double[::1, :] varState):
-        self.ktv.predict(& muState_pred[0], & varState_pred[0, 0],
-                          & muState_past[0], & varState_past[0, 0],
-                          & muState[0], & wgtState[0, 0], & varState[0, 0])
+                double[::1] mu_state_pred,
+                double[::1, :] var_state_pred,
+                const double[::1] mu_state_past,
+                const double[::1, :] var_state_past,
+                const double[::1] mu_state,
+                const double[::1, :] wgt_state,
+                const double[::1, :] var_state):
+        self.ktv.predict(& mu_state_pred[0], & var_state_pred[0, 0],
+                          & mu_state_past[0], & var_state_past[0, 0],
+                          & mu_state[0], & wgt_state[0, 0], & var_state[0, 0])
         return
 
     def update(self,
-               double[::1] muState_filt,
-               double[::1, :] varState_filt,
-               const double[::1] muState_pred,
-               const double[::1, :] varState_pred,
-               const double[::1] xMeas,
-               const double[::1] muMeas,
-               const double[::1, :] wgtMeas,
-               const double[::1, :] varMeas):
-        self.ktv.update(& muState_filt[0], & varState_filt[0, 0],
-                        & muState_pred[0], & varState_pred[0, 0],
-                        & xMeas[0], & muMeas[0],
-                        & wgtMeas[0, 0], & varMeas[0, 0])
+               double[::1] mu_state_filt,
+               double[::1, :] var_state_filt,
+               const double[::1] mu_state_pred,
+               const double[::1, :] var_state_pred,
+               const double[::1] x_meas,
+               const double[::1] mu_meas,
+               const double[::1, :] wgt_meas,
+               const double[::1, :] var_meas):
+        self.ktv.update(& mu_state_filt[0], & var_state_filt[0, 0],
+                        & mu_state_pred[0], & var_state_pred[0, 0],
+                        & x_meas[0], & mu_meas[0],
+                        & wgt_meas[0, 0], & var_meas[0, 0])
         return
     
     def filter(self,
-               double[::1] muState_pred,
-               double[::1, :] varState_pred,
-               double[::1] muState_filt,
-               double[::1, :] varState_filt,
-               const double[::1] muState_past,
-               const double[::1, :] varState_past,
-               const double[::1] muState,
-               const double[::1, :] wgtState,
-               const double[::1, :] varState,
-               const double[::1] xMeas,
-               const double[::1] muMeas,
-               const double[::1, :] wgtMeas,
-               const double[::1, :] varMeas):
-        self.ktv.filter(& muState_pred[0], & varState_pred[0, 0],
-                        & muState_filt[0], & varState_filt[0, 0],
-                        & muState_past[0], & varState_past[0, 0],
-                        & muState[0], & wgtState[0, 0], & varState[0, 0],
-                        & xMeas[0], & muMeas[0],
-                        & wgtMeas[0, 0], & varMeas[0, 0])
+               double[::1] mu_state_pred,
+               double[::1, :] var_state_pred,
+               double[::1] mu_state_filt,
+               double[::1, :] var_state_filt,
+               const double[::1] mu_state_past,
+               const double[::1, :] var_state_past,
+               const double[::1] mu_state,
+               const double[::1, :] wgt_state,
+               const double[::1, :] var_state,
+               const double[::1] x_meas,
+               const double[::1] mu_meas,
+               const double[::1, :] wgt_meas,
+               const double[::1, :] var_meas):
+        self.ktv.filter(& mu_state_pred[0], & var_state_pred[0, 0],
+                        & mu_state_filt[0], & var_state_filt[0, 0],
+                        & mu_state_past[0], & var_state_past[0, 0],
+                        & mu_state[0], & wgt_state[0, 0], & var_state[0, 0],
+                        & x_meas[0], & mu_meas[0],
+                        & wgt_meas[0, 0], & var_meas[0, 0])
         return
 
     def smooth_mv(self,
-                  double[::1] muState_smooth,
-                  double[::1, :] varState_smooth,
-                  const double[::1] muState_next,
-                  const double[::1, :] varState_next,
-                  const double[::1] muState_filt,
-                  const double[::1, :] varState_filt,
-                  const double[::1] muState_pred,
-                  const double[::1, :] varState_pred,
-                  const double[::1, :] wgtState):
-        self.ktv.smooth_mv(& muState_smooth[0], & varState_smooth[0, 0],
-                           & muState_next[0], & varState_next[0, 0],
-                           & muState_filt[0], & varState_filt[0, 0],
-                           & muState_pred[0], & varState_pred[0, 0],
-                           & wgtState[0, 0])
+                  double[::1] mu_state_smooth,
+                  double[::1, :] var_state_smooth,
+                  const double[::1] mu_state_next,
+                  const double[::1, :] var_state_next,
+                  const double[::1] mu_state_filt,
+                  const double[::1, :] var_state_filt,
+                  const double[::1] mu_state_pred,
+                  const double[::1, :] var_state_pred,
+                  const double[::1, :] wgt_state):
+        self.ktv.smooth_mv(& mu_state_smooth[0], & var_state_smooth[0, 0],
+                           & mu_state_next[0], & var_state_next[0, 0],
+                           & mu_state_filt[0], & var_state_filt[0, 0],
+                           & mu_state_pred[0], & var_state_pred[0, 0],
+                           & wgt_state[0, 0])
         return
 
     def smooth_sim(self,
-                   double[::1] xState_smooth,
-                   const double[::1] xState_next,
-                   const double[::1] muState_filt,
-                   const double[::1, :] varState_filt,
-                   const double[::1] muState_pred,
-                   const double[::1, :] varState_pred,
-                   const double[::1, :] wgtState,
-                   const double[::1] randState):
-        self.ktv.smooth_sim(& xState_smooth[0], & xState_next[0],
-                            & muState_filt[0], & varState_filt[0, 0],
-                            & muState_pred[0], & varState_pred[0, 0],
-                            & wgtState[0, 0], & randState[0])
+                   double[::1] x_state_smooth,
+                   const double[::1] x_state_next,
+                   const double[::1] mu_state_filt,
+                   const double[::1, :] var_state_filt,
+                   const double[::1] mu_state_pred,
+                   const double[::1, :] var_state_pred,
+                   const double[::1, :] wgt_state,
+                   const double[::1] z_state):
+        self.ktv.smooth_sim(& x_state_smooth[0], & x_state_next[0],
+                            & mu_state_filt[0], & var_state_filt[0, 0],
+                            & mu_state_pred[0], & var_state_pred[0, 0],
+                            & wgt_state[0, 0], & z_state[0])
         return
 
     def smooth(self,
-               double[::1] xState_smooth,
-               double[::1] muState_smooth,
-               double[::1, :] varState_smooth,
-               const double[::1] xState_next,
-               const double[::1] muState_next,
-               const double[::1, :] varState_next,
-               const double[::1] muState_filt,
-               const double[::1, :] varState_filt,
-               const double[::1] muState_pred,
-               const double[::1, :] varState_pred,
-               const double[::1, :] wgtState,
-               const double[::1] randState):
-        self.ktv.smooth(& xState_smooth[0], & muState_smooth[0],
-                        & varState_smooth[0, 0], & xState_next[0],
-                        & muState_next[0], & varState_next[0, 0],
-                        & muState_filt[0], & varState_filt[0, 0],
-                        & muState_pred[0], & varState_pred[0, 0],
-                        & wgtState[0, 0], & randState[0])
+               double[::1] x_state_smooth,
+               double[::1] mu_state_smooth,
+               double[::1, :] var_state_smooth,
+               const double[::1] x_state_next,
+               const double[::1] mu_state_next,
+               const double[::1, :] var_state_next,
+               const double[::1] mu_state_filt,
+               const double[::1, :] var_state_filt,
+               const double[::1] mu_state_pred,
+               const double[::1, :] var_state_pred,
+               const double[::1, :] wgt_state,
+               const double[::1] z_state):
+        self.ktv.smooth(& x_state_smooth[0], & mu_state_smooth[0],
+                        & var_state_smooth[0, 0], & x_state_next[0],
+                        & mu_state_next[0], & var_state_next[0, 0],
+                        & mu_state_filt[0], & var_state_filt[0, 0],
+                        & mu_state_pred[0], & var_state_pred[0, 0],
+                        & wgt_state[0, 0], & z_state[0])
         return

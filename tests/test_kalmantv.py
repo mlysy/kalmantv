@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 from kalmantv.cython import KalmanTV
+from .KalmanTV import KalmanTV as KTV_py
 
 
 # helper functions
@@ -25,298 +26,298 @@ def rand_mat(n, p=None, pd=True):
         V[:] = np.matmul(V, V.T)
     return V
 
+# # pure python implementation (FIXME: use class instead)
+# def predict(mu_state_past, var_state_past,
+#             mu_state, wgt_state, var_state):
+#     mu_state_pred = np.matmul(wgt_state, mu_state_past) + mu_state
+#     var_state_pred = np.matmul(wgt_state, var_state_past)
+#     var_state_pred = np.matmul(var_state_pred, wgt_state.T) + var_state
+#     return mu_state_pred, var_state_pred
 
-# pure python implementation (FIXME: use class instead)
-def predict(muState_past, varState_past,
-            muState, wgtState, varState):
-    muState_pred = np.matmul(wgtState, muState_past) + muState
-    varState_pred = np.matmul(wgtState, varState_past)
-    varState_pred = np.matmul(varState_pred, wgtState.T) + varState
-    return muState_pred, varState_pred
+# def update(mu_state_pred, var_state_pred,
+#            x_meas, mu_meas, wgt_meas, var_meas):
+#     mu_meas_pred = np.matmul(wgt_meas, mu_state_pred) + mu_meas
+#     var_meas_state_pred = np.matmul(wgt_meas, var_state_pred)
+#     var_meas_meas_pred = np.linalg.multi_dot(
+#         [wgt_meas, var_state_pred, wgt_meas.T]) + var_meas
+#     var_state_meas_pred = np.matmul(var_state_pred, wgt_meas.T)
+#     var_state_temp = np.linalg.solve(var_meas_meas_pred, var_state_meas_pred.T).T
+#     mu_state_filt = mu_state_pred + np.matmul(var_state_temp, x_meas - mu_meas_pred)
+#     var_state_filt = var_state_pred - np.matmul(var_state_temp, var_meas_state_pred)
+#     return mu_state_filt, var_state_filt
 
+# def filter(mu_state_past, var_state_past,
+#            mu_state, wgt_state,
+#            var_state, x_meas, mu_meas,
+#            wgt_meas, var_meas):
+#     mu_state_pred, var_state_pred = predict(mu_state_past=mu_state_past,
+#                                           var_state_past=var_state_past,
+#                                           mu_state=mu_state,
+#                                           wgt_state=wgt_state,
+#                                           var_state=var_state)
+#     mu_state_filt, var_state_filt = update(mu_state_pred=mu_state_pred,
+#                                          var_state_pred=var_state_pred,
+#                                          x_meas=x_meas,
+#                                          mu_meas=mu_meas,
+#                                          wgt_meas=wgt_meas,
+#                                          var_meas=var_meas)
+#     return mu_state_pred, var_state_pred, mu_state_filt, var_state_filt
 
-def update(muState_pred, varState_pred,
-           xMeas, muMeas, wgtMeas, varMeas):
-    muMeas_pred = np.matmul(wgtMeas, muState_pred) + muMeas
-    varMeasState_pred = np.matmul(wgtMeas, varState_pred)
-    varMeasMeas_pred = np.linalg.multi_dot(
-        [wgtMeas, varState_pred, wgtMeas.T]) + varMeas
-    varStateMeas_pred = np.matmul(varState_pred, wgtMeas.T)
-    varState_temp = np.linalg.solve(varMeasMeas_pred, varStateMeas_pred.T).T
-    muState_filt = muState_pred + np.matmul(varState_temp, xMeas - muMeas_pred)
-    varState_filt = varState_pred - np.matmul(varState_temp, varMeasState_pred)
-    return muState_filt, varState_filt
+# def smooth_mv(mu_state_next, var_state_next,
+#               mu_state_filt, var_state_filt,
+#               mu_state_pred, var_state_pred,
+#               wgt_state):
+#     """
+#     Perform one step of the Kalman mean/variance smoother.
+#     Calculates :math:`\\theta_{n|N}` from :math:`\\theta_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
+#     """
+#     var_state_temp = var_state_filt.dot(wgt_state.T)
+#     var_state_temp_tilde = np.linalg.solve(var_state_pred, var_state_temp.T).T
+#     mu_state_smooth = mu_state_filt + \
+#         var_state_temp_tilde.dot(mu_state_next - mu_state_pred)
+#     var_state_smooth = var_state_filt + np.linalg.multi_dot(
+#         [var_state_temp_tilde, (var_state_next - var_state_pred), var_state_temp_tilde.T])
+#     return mu_state_smooth, var_state_smooth
 
+# def smooth_sim(x_state_next, mu_state_filt,
+#                var_state_filt, mu_state_pred,
+#                var_state_pred, wgt_state, z_state):
+#     """
+#     Perform one step of the Kalman sampling smoother.
+#     Calculates a draw :math:`x_{n|N}` from :math:`x_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
+#     """
+#     var_state_temp = var_state_filt.dot(wgt_state.T)
+#     var_state_temp_tilde = np.linalg.solve(var_state_pred, var_state_temp.T).T
+#     mu_state_sim = mu_state_filt + \
+#         var_state_temp_tilde.dot(x_state_next - mu_state_pred)
+#     var_state_sim = var_state_filt - var_state_temp_tilde.dot(var_state_temp.T)
+#     # Make sure it is semi positive definite for testing
+#     var_state_sim2 = var_state_sim.dot(var_state_sim.T)
+#     x_state_smooth = np.linalg.cholesky(var_state_sim2).dot(
+#         z_state)  # Use var_state_sim instead in the real algorithm
+#     x_state_smooth += mu_state_sim
+#     return x_state_smooth
 
-def filter(muState_past, varState_past,
-           muState, wgtState,
-           varState, xMeas, muMeas,
-           wgtMeas, varMeas):
-    muState_pred, varState_pred = predict(muState_past=muState_past,
-                                          varState_past=varState_past,
-                                          muState=muState,
-                                          wgtState=wgtState,
-                                          varState=varState)
-    muState_filt, varState_filt = update(muState_pred=muState_pred,
-                                         varState_pred=varState_pred,
-                                         xMeas=xMeas,
-                                         muMeas=muMeas,
-                                         wgtMeas=wgtMeas,
-                                         varMeas=varMeas)
-    return muState_pred, varState_pred, muState_filt, varState_filt
+# def smooth(x_state_next, mu_state_next,
+#            var_state_next, mu_state_filt,
+#            var_state_filt, mu_state_pred,
+#            var_state_pred, wgt_state, z_state):
+#     """
+#     Perform one step of both Kalman mean/variance and sampling smoothers.
+#     Combines :func:`KalmanTV.smooth_mv` and :func:`KalmanTV.smooth_sim` steps to get :math:`x_{n|N}` and 
+#     :math:`\\theta_{n|N}` from :math:`\\theta_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
+#     """
+#     mu_state_smooth, var_state_smooth = \
+#         smooth_mv(mu_state_next=mu_state_next,
+#                   var_state_next=var_state_next,
+#                   mu_state_filt=mu_state_filt,
+#                   var_state_filt=var_state_filt,
+#                   mu_state_pred=mu_state_pred,
+#                   var_state_pred=var_state_pred,
+#                   wgt_state=wgt_state)
+#     x_state_smooth = \
+#         smooth_sim(x_state_next=x_state_next,
+#                    mu_state_filt=mu_state_filt,
+#                    var_state_filt=var_state_filt,
+#                    mu_state_pred=mu_state_pred,
+#                    var_state_pred=var_state_pred,
+#                    wgt_state=wgt_state,
+#                    z_state=z_state)
+#     return mu_state_smooth, var_state_smooth, x_state_smooth
 
-
-def smooth_mv(muState_next, varState_next,
-              muState_filt, varState_filt,
-              muState_pred, varState_pred,
-              wgtState):
-    """
-    Perform one step of the Kalman mean/variance smoother.
-    Calculates :math:`\\theta_{n|N}` from :math:`\\theta_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
-    """
-    varState_temp = varState_filt.dot(wgtState.T)
-    varState_temp_tilde = np.linalg.solve(varState_pred, varState_temp.T).T
-    muState_smooth = muState_filt + \
-        varState_temp_tilde.dot(muState_next - muState_pred)
-    varState_smooth = varState_filt + np.linalg.multi_dot(
-        [varState_temp_tilde, (varState_next - varState_pred), varState_temp_tilde.T])
-    return muState_smooth, varState_smooth
-
-
-def smooth_sim(xState_next, muState_filt,
-               varState_filt, muState_pred,
-               varState_pred, wgtState, randState):
-    """
-    Perform one step of the Kalman sampling smoother.
-    Calculates a draw :math:`x_{n|N}` from :math:`x_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
-    """
-    varState_temp = varState_filt.dot(wgtState.T)
-    varState_temp_tilde = np.linalg.solve(varState_pred, varState_temp.T).T
-    muState_sim = muState_filt + \
-        varState_temp_tilde.dot(xState_next - muState_pred)
-    varState_sim = varState_filt - varState_temp_tilde.dot(varState_temp.T)
-    # Make sure it is semi positive definite for testing
-    varState_sim2 = varState_sim.dot(varState_sim.T)
-    xState_smooth = np.linalg.cholesky(varState_sim2).dot(
-        randState)  # Use varState_sim instead in the real algorithm
-    xState_smooth += muState_sim
-    return xState_smooth
-
-
-def smooth(xState_next, muState_next,
-           varState_next, muState_filt,
-           varState_filt, muState_pred,
-           varState_pred, wgtState, randState):
-    """
-    Perform one step of both Kalman mean/variance and sampling smoothers.
-    Combines :func:`KalmanTV.smooth_mv` and :func:`KalmanTV.smooth_sim` steps to get :math:`x_{n|N}` and 
-    :math:`\\theta_{n|N}` from :math:`\\theta_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
-    """
-    muState_smooth, varState_smooth = \
-        smooth_mv(muState_next=muState_next,
-                  varState_next=varState_next,
-                  muState_filt=muState_filt,
-                  varState_filt=varState_filt,
-                  muState_pred=muState_pred,
-                  varState_pred=varState_pred,
-                  wgtState=wgtState)
-    xState_smooth = \
-        smooth_sim(xState_next=xState_next,
-                   muState_filt=muState_filt,
-                   varState_filt=varState_filt,
-                   muState_pred=muState_pred,
-                   varState_pred=varState_pred,
-                   wgtState=wgtState,
-                   randState=randState)
-    return muState_smooth, varState_smooth, xState_smooth
 # # check calculation
-# nMeas = 2
-# nState = 3
-# muState_past = rand_vec(nState)
-# varState_past = rand_mat(nState)
-# muState = rand_vec(nState)
-# wgtState = rand_mat(nState, pd=False)
-# varState = rand_mat(nState)
+# n_meas = 2
+# n_state = 3
+# mu_state_past = rand_vec(n_state)
+# var_state_past = rand_mat(n_state)
+# mu_state = rand_vec(n_state)
+# wgt_state = rand_mat(n_state, pd=False)
+# var_state = rand_mat(n_state)
 
-# muState_pred, varState_pred = predict(muState_past, varState_past,
-#                                       muState, wgtState, varState)
+# mu_state_pred, var_state_pred = predict(mu_state_past, var_state_past,
+#                                       mu_state, wgt_state, var_state)
 
-# ktv = KalmanTV(nMeas, nState)
-# muState_pred2 = np.empty(nState)
-# varState_pred2 = np.empty((nState, nState), order='F')
-# ktv.predict(muState_pred2, varState_pred2,
-#             muState_past, varState_past,
-#             muState, wgtState, varState)
+# ktv = KalmanTV(n_meas, n_state)
+# mu_state_pred2 = np.empty(n_state)
+# var_state_pred2 = np.empty((n_state, n_state), order='F')
+# ktv.predict(mu_state_pred2, var_state_pred2,
+#             mu_state_past, var_state_past,
+#             mu_state, wgt_state, var_state)
 
-# muState_pred - muState_pred2
-# varState_pred - varState_pred2
+# mu_state_pred - mu_state_pred2
+# var_state_pred - var_state_pred2
 
 # test suite
 
-
 class KalmanTVTest(unittest.TestCase):
     def test_predict(self):
-        nMeas = np.random.randint(5)
-        nState = nMeas + np.random.randint(5)
-        muState_past = rand_vec(nState)
-        varState_past = rand_mat(nState)
-        muState = rand_vec(nState)
-        wgtState = rand_mat(nState, pd=False)
-        varState = rand_mat(nState)
+        n_meas = np.random.randint(5)
+        n_state = n_meas + np.random.randint(5)
+        mu_state_past = rand_vec(n_state)
+        var_state_past = rand_mat(n_state)
+        mu_state = rand_vec(n_state)
+        wgt_state = rand_mat(n_state, pd=False)
+        var_state = rand_mat(n_state)
         # pure python
-        muState_pred, varState_pred = predict(muState_past, varState_past,
-                                              muState, wgtState, varState)
+        KFS = KTV_py(n_meas, n_state)
+        mu_state_pred, var_state_pred = KFS.predict(mu_state_past, var_state_past,
+                                              mu_state, wgt_state, var_state)
         # cython
-        ktv = KalmanTV(nMeas, nState)
-        muState_pred2 = np.empty(nState)
-        varState_pred2 = np.empty((nState, nState), order='F')
-        ktv.predict(muState_pred2, varState_pred2,
-                    muState_past, varState_past,
-                    muState, wgtState, varState)
-        self.assertAlmostEqual(rel_err(muState_pred, muState_pred2), 0.0)
-        self.assertAlmostEqual(rel_err(varState_pred, varState_pred2), 0.0)
+        ktv = KalmanTV(n_meas, n_state)
+        mu_state_pred2 = np.empty(n_state)
+        var_state_pred2 = np.empty((n_state, n_state), order='F')
+        ktv.predict(mu_state_pred2, var_state_pred2,
+                    mu_state_past, var_state_past,
+                    mu_state, wgt_state, var_state)
+        self.assertAlmostEqual(rel_err(mu_state_pred, mu_state_pred2), 0.0)
+        self.assertAlmostEqual(rel_err(var_state_pred, var_state_pred2), 0.0)
 
     def test_update(self):
-        nMeas = np.random.randint(5) + 1
-        nState = nMeas + np.random.randint(5)
-        muState_pred = rand_vec(nState)
-        varState_pred = rand_mat(nState)
-        xMeas = rand_vec(nMeas)
-        muMeas = rand_vec(nMeas)
-        wgtMeas = rand_mat(nMeas, nState, pd=False)
-        varMeas = rand_mat(nMeas)
+        n_meas = np.random.randint(5) + 1
+        n_state = n_meas + np.random.randint(5)
+        mu_state_pred = rand_vec(n_state)
+        var_state_pred = rand_mat(n_state)
+        x_meas = rand_vec(n_meas)
+        mu_meas = rand_vec(n_meas)
+        wgt_meas = rand_mat(n_meas, n_state, pd=False)
+        var_meas = rand_mat(n_meas)
         # pure python
-        muState_filt, varState_filt = update(muState_pred, varState_pred,
-                                             xMeas, muMeas, wgtMeas, varMeas)
+        KFS = KTV_py(n_meas, n_state)
+        mu_state_filt, var_state_filt = KFS.update(mu_state_pred, var_state_pred,
+                                             x_meas, mu_meas, wgt_meas, var_meas)
         # cython
-        ktv = KalmanTV(nMeas, nState)
-        muState_filt2 = np.empty(nState)
-        varState_filt2 = np.empty((nState, nState), order='F')
-        ktv.update(muState_filt2, varState_filt2,
-                   muState_pred, varState_pred,
-                   xMeas, muMeas, wgtMeas, varMeas)
-        self.assertAlmostEqual(rel_err(muState_filt, muState_filt2), 0.0)
-        self.assertAlmostEqual(rel_err(varState_filt, varState_filt2), 0.0)
+        ktv = KalmanTV(n_meas, n_state)
+        mu_state_filt2 = np.empty(n_state)
+        var_state_filt2 = np.empty((n_state, n_state), order='F')
+        ktv.update(mu_state_filt2, var_state_filt2,
+                   mu_state_pred, var_state_pred,
+                   x_meas, mu_meas, wgt_meas, var_meas)
+        self.assertAlmostEqual(rel_err(mu_state_filt, mu_state_filt2), 0.0)
+        self.assertAlmostEqual(rel_err(var_state_filt, var_state_filt2), 0.0)
 
     def test_filter(self):
-        nMeas = np.random.randint(5) + 2
-        nState = nMeas + np.random.randint(5)
-        muState_past = rand_vec(nState)
-        varState_past = rand_mat(nState)
-        muState = rand_vec(nState)
-        wgtState = rand_mat(nState, pd=False)
-        varState = rand_mat(nState)
-        xMeas = rand_vec(nMeas)
-        muMeas = rand_vec(nMeas)
-        wgtMeas = rand_mat(nMeas, nState, pd=False)
-        varMeas = rand_mat(nMeas)
+        n_meas = np.random.randint(5) + 2
+        n_state = n_meas + np.random.randint(5)
+        mu_state_past = rand_vec(n_state)
+        var_state_past = rand_mat(n_state)
+        mu_state = rand_vec(n_state)
+        wgt_state = rand_mat(n_state, pd=False)
+        var_state = rand_mat(n_state)
+        x_meas = rand_vec(n_meas)
+        mu_meas = rand_vec(n_meas)
+        wgt_meas = rand_mat(n_meas, n_state, pd=False)
+        var_meas = rand_mat(n_meas)
         # pure python
-        muState_pred, varState_pred, muState_filt, varState_filt = (
-            filter(muState_past, varState_past,
-                   muState, wgtState,
-                   varState, xMeas, muMeas,
-                   wgtMeas, varMeas)
+        KFS = KTV_py(n_meas, n_state)
+        mu_state_pred, var_state_pred, mu_state_filt, var_state_filt = (
+            KFS.filter(mu_state_past, var_state_past,
+                   mu_state, wgt_state,
+                   var_state, x_meas, mu_meas,
+                   wgt_meas, var_meas)
         )
         # cython
-        ktv = KalmanTV(nMeas, nState)
-        muState_pred2 = np.empty(nState)
-        varState_pred2 = np.empty((nState, nState), order='F')
-        muState_filt2 = np.empty(nState)
-        varState_filt2 = np.empty((nState, nState), order='F')
-        ktv.filter(muState_pred2, varState_pred2,
-                   muState_filt2, varState_filt2,
-                   muState_past, varState_past,
-                   muState, wgtState, varState,
-                   xMeas, muMeas, wgtMeas, varMeas)
+        ktv = KalmanTV(n_meas, n_state)
+        mu_state_pred2 = np.empty(n_state)
+        var_state_pred2 = np.empty((n_state, n_state), order='F')
+        mu_state_filt2 = np.empty(n_state)
+        var_state_filt2 = np.empty((n_state, n_state), order='F')
+        ktv.filter(mu_state_pred2, var_state_pred2,
+                   mu_state_filt2, var_state_filt2,
+                   mu_state_past, var_state_past,
+                   mu_state, wgt_state, var_state,
+                   x_meas, mu_meas, wgt_meas, var_meas)
 
-        self.assertAlmostEqual(rel_err(muState_pred, muState_pred2), 0.0)
-        self.assertAlmostEqual(rel_err(varState_pred, varState_pred2), 0.0)
-        self.assertAlmostEqual(rel_err(muState_filt, muState_filt2), 0.0)
-        self.assertAlmostEqual(rel_err(varState_filt, varState_filt2), 0.0)
+        self.assertAlmostEqual(rel_err(mu_state_pred, mu_state_pred2), 0.0)
+        self.assertAlmostEqual(rel_err(var_state_pred, var_state_pred2), 0.0)
+        self.assertAlmostEqual(rel_err(mu_state_filt, mu_state_filt2), 0.0)
+        self.assertAlmostEqual(rel_err(var_state_filt, var_state_filt2), 0.0)
 
     def test_smooth_mv(self):
-        nMeas = np.random.randint(5) + 3
-        nState = nMeas + np.random.randint(5)
-        muState_next = rand_vec(nState)
-        varState_next = rand_mat(nState)
-        muState_filt = rand_vec(nState)
-        varState_filt = rand_mat(nState)
-        muState_pred = rand_vec(nState)
-        varState_pred = rand_mat(nState)
-        wgtState = rand_mat(nState, pd=False)
+        n_meas = np.random.randint(5) + 3
+        n_state = n_meas + np.random.randint(5)
+        mu_state_next = rand_vec(n_state)
+        var_state_next = rand_mat(n_state)
+        mu_state_filt = rand_vec(n_state)
+        var_state_filt = rand_mat(n_state)
+        mu_state_pred = rand_vec(n_state)
+        var_state_pred = rand_mat(n_state)
+        wgt_state = rand_mat(n_state, pd=False)
         # pure python
-        muState_smooth, varState_smooth = smooth_mv(muState_next, varState_next,
-                                                    muState_filt, varState_filt,
-                                                    muState_pred, varState_pred,
-                                                    wgtState)
+        KFS = KTV_py(n_meas, n_state)
+        mu_state_smooth, var_state_smooth = KFS.smooth_mv(mu_state_next, var_state_next,
+                                                    mu_state_filt, var_state_filt,
+                                                    mu_state_pred, var_state_pred,
+                                                    wgt_state)
         # cython
-        ktv = KalmanTV(nMeas, nState)
-        muState_smooth2 = np.empty(nState)
-        varState_smooth2 = np.empty((nState, nState), order='F')
-        ktv.smooth_mv(muState_smooth2, varState_smooth2,
-                      muState_next, varState_next,
-                      muState_filt, varState_filt,
-                      muState_pred, varState_pred,
-                      wgtState)
-        self.assertAlmostEqual(rel_err(muState_smooth, muState_smooth2), 0.0)
-        self.assertAlmostEqual(rel_err(varState_smooth, varState_smooth2), 0.0)
+        ktv = KalmanTV(n_meas, n_state)
+        mu_state_smooth2 = np.empty(n_state)
+        var_state_smooth2 = np.empty((n_state, n_state), order='F')
+        ktv.smooth_mv(mu_state_smooth2, var_state_smooth2,
+                      mu_state_next, var_state_next,
+                      mu_state_filt, var_state_filt,
+                      mu_state_pred, var_state_pred,
+                      wgt_state)
+        self.assertAlmostEqual(rel_err(mu_state_smooth, mu_state_smooth2), 0.0)
+        self.assertAlmostEqual(rel_err(var_state_smooth, var_state_smooth2), 0.0)
 
     def test_smooth_sim(self):
-        nMeas = np.random.randint(5) + 4
-        nState = nMeas + np.random.randint(5)
-        xState_next = rand_vec(nState)
-        muState_filt = rand_vec(nState)
-        varState_filt = rand_mat(nState)
-        muState_pred = rand_vec(nState)
-        varState_pred = rand_mat(nState)
-        wgtState = rand_mat(nState, pd=False)
-        randState = rand_vec(nState)
+        n_meas = np.random.randint(5) + 4
+        n_state = n_meas + np.random.randint(5)
+        x_state_next = rand_vec(n_state)
+        mu_state_filt = rand_vec(n_state)
+        var_state_filt = rand_mat(n_state)
+        mu_state_pred = rand_vec(n_state)
+        var_state_pred = rand_mat(n_state)
+        wgt_state = rand_mat(n_state, pd=False)
+        z_state = rand_vec(n_state)
         # pure python
-        xState_smooth = \
-            smooth_sim(xState_next, muState_filt,
-                       varState_filt, muState_pred,
-                       varState_pred, wgtState, randState)
+        KFS = KTV_py(n_meas, n_state)
+        x_state_smooth = \
+            KFS.smooth_sim(x_state_next, mu_state_filt,
+                       var_state_filt, mu_state_pred,
+                       var_state_pred, wgt_state, z_state)
         # cython
-        ktv = KalmanTV(nMeas, nState)
-        xState_smooth2 = np.empty(nState)
-        ktv.smooth_sim(xState_smooth2, xState_next,
-                       muState_filt, varState_filt,
-                       muState_pred, varState_pred,
-                       wgtState, randState)
-        self.assertAlmostEqual(rel_err(xState_smooth, xState_smooth2), 0.0)
+        ktv = KalmanTV(n_meas, n_state)
+        x_state_smooth2 = np.empty(n_state)
+        ktv.smooth_sim(x_state_smooth2, x_state_next,
+                       mu_state_filt, var_state_filt,
+                       mu_state_pred, var_state_pred,
+                       wgt_state, z_state)
+        self.assertAlmostEqual(rel_err(x_state_smooth, x_state_smooth2), 0.0)
 
     def test_smooth(self):
-        nMeas = np.random.randint(5) + 5
-        nState = nMeas + np.random.randint(5)
-        xState_next = rand_vec(nState)
-        muState_next = rand_vec(nState)
-        varState_next = rand_mat(nState)
-        muState_filt = rand_vec(nState)
-        varState_filt = rand_mat(nState)
-        muState_pred = rand_vec(nState)
-        varState_pred = rand_mat(nState)
-        wgtState = rand_mat(nState, pd=False)
-        randState = rand_vec(nState)
+        n_meas = np.random.randint(5) + 5
+        n_state = n_meas + np.random.randint(5)
+        x_state_next = rand_vec(n_state)
+        mu_state_next = rand_vec(n_state)
+        var_state_next = rand_mat(n_state)
+        mu_state_filt = rand_vec(n_state)
+        var_state_filt = rand_mat(n_state)
+        mu_state_pred = rand_vec(n_state)
+        var_state_pred = rand_mat(n_state)
+        wgt_state = rand_mat(n_state, pd=False)
+        z_state = rand_vec(n_state)
         # pure python
-        muState_smooth, varState_smooth, xState_smooth = \
-            smooth(xState_next, muState_next,
-                   varState_next, muState_filt,
-                   varState_filt, muState_pred,
-                   varState_pred, wgtState, randState)
+        KFS = KTV_py(n_meas, n_state)
+        mu_state_smooth, var_state_smooth, x_state_smooth = \
+            KFS.smooth(x_state_next, mu_state_next,
+                   var_state_next, mu_state_filt,
+                   var_state_filt, mu_state_pred,
+                   var_state_pred, wgt_state, z_state)
         # cython
-        ktv = KalmanTV(nMeas, nState)
-        xState_smooth2 = np.empty(nState)
-        muState_smooth2 = np.empty(nState)
-        varState_smooth2 = np.empty((nState, nState), order='F')
-        ktv.smooth(xState_smooth2, muState_smooth2,
-                   varState_smooth2, xState_next,
-                   muState_next, varState_next,
-                   muState_filt, varState_filt,
-                   muState_pred, varState_pred,
-                   wgtState, randState)
-        self.assertAlmostEqual(rel_err(muState_smooth, muState_smooth2), 0.0)
-        self.assertAlmostEqual(rel_err(varState_smooth, varState_smooth2), 0.0)
-        self.assertAlmostEqual(rel_err(xState_smooth, xState_smooth2), 0.0)
+        ktv = KalmanTV(n_meas, n_state)
+        x_state_smooth2 = np.empty(n_state)
+        mu_state_smooth2 = np.empty(n_state)
+        var_state_smooth2 = np.empty((n_state, n_state), order='F')
+        ktv.smooth(x_state_smooth2, mu_state_smooth2,
+                   var_state_smooth2, x_state_next,
+                   mu_state_next, var_state_next,
+                   mu_state_filt, var_state_filt,
+                   mu_state_pred, var_state_pred,
+                   wgt_state, z_state)
+        self.assertAlmostEqual(rel_err(mu_state_smooth, mu_state_smooth2), 0.0)
+        self.assertAlmostEqual(rel_err(var_state_smooth, var_state_smooth2), 0.0)
+        self.assertAlmostEqual(rel_err(x_state_smooth, x_state_smooth2), 0.0)
 
 
 if __name__ == '__main__':
