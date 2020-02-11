@@ -4,8 +4,8 @@ from Cython.Distutils import build_ext
 import numpy as np
 
 ext_modules = [
-    Extension("kalman_ode_higher_cy", 
-              ["kalman_ode_higher_cy.pyx"],
+    Extension("kalman_ode_higher", 
+              ["kalman_ode_higher.pyx"],
               include_dirs=[np.get_include()])
 ]
 
