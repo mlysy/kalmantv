@@ -25,8 +25,8 @@ python -m unittest discover -v
 
 ## TODO
 
-- [ ] Add remaining **kalmantv** methods to `KalmanTV.h`, `KalmanTV.pxd`, and `kalmantv.pyx`, and of course test the methods (see how to do this in `tests/test_kalmantv.py`).
+- [X] Add remaining **kalmantv** methods to `KalmanTV.h`, `KalmanTV.pxd`, and `kalmantv.pyx`, and of course test the methods (see how to do this in `tests/test_kalmantv.py`).
 
-- [ ] Replace test functions in `tests/test_kalmantv.py` with `kalmantv` class from **probDE**.  This is basically just copying `kalmantv.py` to `tests` folder, and adding `import kalmantv` at the top of `test_kalmantv.py`.
+- [X] Replace test functions in `tests/test_kalmantv.py` with `kalmantv` class from **probDE**.  This is basically just copying `kalmantv.py` to `tests` folder, and adding `import kalmantv` at the top of `test_kalmantv.py`.
 
-- [ ] Test Cython interface (i.e., using `cimport`, but don't need to worry about this for now). 
+- [X] Test Cython interface (i.e., using `cimport`, but don't need to worry about this for now). 

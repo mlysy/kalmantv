@@ -499,10 +499,10 @@ namespace KalmanTV {
     // std::cout << "tmu_state_= " << tmu_state_ << std::endl;
     tvar_state3_.noalias() = tvar_state_.adjoint() * tvar_state2_;
     tvar_state3_.noalias() = var_state_filt - tvar_state3_;
-    tvar_state4_.noalias() = tvar_state3_ * tvar_state3_.adjoint(); // only for testing (requires semi-positive)
+    // tvar_state4_.noalias() = tvar_state3_ * tvar_state3_.adjoint(); // only for testing (requires semi-positive)
     // var_state_sim.noalias() = tvar_state4_; // testing
     // Cholesky
-    llt_state_.compute(tvar_state4_); // use tvar_state3_ in the algorithm
+    llt_state_.compute(tvar_state3_); // use tvar_state3_ in the algorithm
     tvar_state5_ = llt_state_.matrixL();
     xState_smooth.noalias() = tvar_state5_ * z_state;
     xState_smooth += tmu_state2_;
