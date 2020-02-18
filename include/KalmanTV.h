@@ -60,7 +60,7 @@ namespace KalmanTV {
     MatrixXd tvar_state2_;
     MatrixXd tvar_state3_;
     MatrixXd tvar_state4_;
-    MatrixXd tvar_state5_;
+    MatrixXd tchol_state_;
     VectorXd tmu_meas_;
     MatrixXd twgt_meas_;
     MatrixXd twgt_meas2_;
@@ -213,7 +213,17 @@ namespace KalmanTV {
                 const double* mu_state_pred,
                 const double* var_state_pred,
                 const double* wgt_state,
-                const double* z_state); 
+                const double* z_state);
+    /// Simulate a random state given the mean and variance.
+    void state_sim(RefVectorXd x_state,
+                   cRefVectorXd& mu_state,
+                   cRefMatrixXd& var_State,
+                   cRefVectorXd& z_state);
+    /// Raw buffer equivalent.
+    void state_sim(double* x_state,
+                   const double* mu_state,
+                   const double* var_state,
+                   const double* z_state);
     // void printX() {
     //   int n = 2;
     //   int p = 3;
@@ -238,7 +248,7 @@ namespace KalmanTV {
     tvar_state2_ = MatrixXd::Identity(n_state_, n_state_);
     tvar_state3_ = MatrixXd::Identity(n_state_, n_state_);
     tvar_state4_ = MatrixXd::Identity(n_state_, n_state_);
-    tvar_state5_ = MatrixXd::Identity(n_state_, n_state_);
+    tchol_state_ = MatrixXd::Identity(n_state_, n_state_);
     tmu_meas_ = VectorXd::Zero(n_meas_);
     tvar_meas_ = MatrixXd::Identity(n_meas_, n_meas_);
     twgt_meas_ = MatrixXd::Zero(n_meas_, n_state_);
@@ -502,10 +512,12 @@ namespace KalmanTV {
     // tvar_state4_.noalias() = tvar_state3_ * tvar_state3_.adjoint(); // only for testing (requires semi-positive)
     // var_state_sim.noalias() = tvar_state4_; // testing
     // Cholesky
-    llt_state_.compute(tvar_state3_); // use tvar_state3_ in the algorithm
-    tvar_state5_ = llt_state_.matrixL();
-    xState_smooth.noalias() = tvar_state5_ * z_state;
-    xState_smooth += tmu_state2_;
+    state_sim(xState_smooth, tmu_state2_,
+              tvar_state3_, z_state);
+/*     llt_state2_.compute(tvar_state4_); // use tvar_state3_ in the algorithm
+    tchol_state_ = llt_state2_.matrixL();
+    xState_smooth.noalias() = tchol_state_ * z_state;
+    xState_smooth += tmu_state2_; */
     return;
   }
   /// Raw buffer equivalent.
@@ -587,7 +599,35 @@ namespace KalmanTV {
                mu_state_pred, var_state_pred, 
                wgt_state, z_state);
     return;
-  }                    
+  }
+
+  /// @param[out] x_state Simulated state.
+  /// @param[in] mu_state State mean.
+  /// @param[in] var_state State variance.
+  /// @param[in] z_state Random draws from `N(0,1)` for simulating the state.
+  inline void KalmanTV::state_sim(RefVectorXd x_state,
+                                  cRefVectorXd& mu_state,
+                                  cRefMatrixXd& var_state,
+                                  cRefVectorXd& z_state) {
+    llt_state_.compute(var_state);
+    tchol_state_ = llt_state_.matrixL();
+    x_state.noalias() = tchol_state_ * z_state;
+    x_state += mu_state;
+    return;
+  }
+  /// Raw buffer equivalent.
+  inline void KalmanTV::state_sim(double* x_state,
+                                  const double* mu_state,
+                                  const double* var_state,
+                                  const double* z_state) {
+    MapVectorXd x_state_(x_state, n_state_);
+    cMapVectorXd mu_state_(mu_state, n_state_);
+    cMapMatrixXd var_state_(var_state, n_state_, n_state_);
+    cMapVectorXd z_state_(z_state, n_state_);
+    state_sim(x_state_, mu_state_,
+              var_state_, z_state_);
+    return;
+  }
 } // end namespace KalmanTV
 
 

@@ -187,3 +187,11 @@ class KalmanTV(object):
                                         z_state = z_state)
         return mu_state_smooth, var_state_smooth, x_state_smooth
     
+    def state_sim(self,
+                  mu_state,
+                  var_state,
+                  z_state):
+        x_state = np.linalg.cholesky(var_state).dot(z_state)
+        x_state += mu_state
+        return x_state
+    

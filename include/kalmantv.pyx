@@ -111,3 +111,12 @@ cdef class KalmanTV:
                         & mu_state_pred[0], & var_state_pred[0, 0],
                         & wgt_state[0, 0], & z_state[0])
         return
+
+    def state_sim(self,
+                  double[::1] x_state,
+                  double[::1] mu_state,
+                  double[::1, :] var_state,
+                  double[::1] z_state):
+        self.ktv.state_sim(& x_state[0], & mu_state[0],
+                           & var_state[0, 0], & z_state[0])
+        return
