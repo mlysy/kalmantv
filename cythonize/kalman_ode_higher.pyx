@@ -2,6 +2,7 @@ cimport cython
 import numpy as np
 cimport numpy as np
 from kalmantv.cython import KalmanTV
+from linalg.mat_mult import mat_mult, mat_vec_mult
 
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
@@ -20,22 +21,23 @@ ctypedef np.double_t DTYPE_t
 #    ```
 #
 #    The main issue here is that you should malloc everything at object instantiation time, so you'll need to specify the dimensions of all relevant operations.
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
-def kalman_ode_higher(fun, # FIXME: this should be cpdef'ed...right?
-                      np.ndarray[DTYPE_t, ndim=1] x0_state,
-                      double tmin,
-                      double tmax,
-                      int n_eval, 
-                      np.ndarray[DTYPE_t, ndim=2] wgt_state,
-                      np.ndarray[DTYPE_t, ndim=1] mu_state, 
-                      np.ndarray[DTYPE_t, ndim=2] var_state,
-                      np.ndarray[DTYPE_t, ndim=2] wgt_meas, 
-                      np.ndarray[DTYPE_t, ndim=2] z_state_sim):
+cpdef kalman_ode_higher(fun,
+                          double[::1] x0_state,
+                          double tmin,
+                          double tmax,
+                          int n_eval, 
+                          double[::1, :] wgt_state,
+                          double[::1] mu_state, 
+                          double[::1, :] var_state,
+                          double[::1, :] wgt_meas, 
+                          double[::1, :] z_state_sim):
     # Dimensions of state and measure variables
     cdef int n_dim_meas = wgt_meas.shape[0]
-    cdef int n_dim_state = len(mu_state)
+    cdef int n_dim_state = mu_state.shape[0]
     cdef int n_steps = n_eval + 1
 
     # argumgents for kalman_filter and kalman_smooth
@@ -59,16 +61,19 @@ def kalman_ode_higher(fun, # FIXME: this should be cpdef'ed...right?
                                                                   dtype=DTYPE, order='F')
     cdef np.ndarray[DTYPE_t, ndim=2] x_state_smooths = np.zeros((n_dim_state, n_steps),
                                                                 dtype=DTYPE, order='F')
-
+    cdef np.ndarray[DTYPE_t, ndim=1] x_state_tt = np.zeros(n_dim_state, 
+                                                           dtype=DTYPE, order='F') #Temporary state simulation for interrogation
+    cdef np.ndarray[DTYPE_t, ndim=2] var_state_meas = np.zeros((n_dim_meas, n_dim_state),
+                                                           dtype=DTYPE, order='F') #Temporary matrix for multi_dot
+    cdef int t
+    
     # initialize things
     mu_state_filts[:, 0] = x0_state
-    # FIXME: is np.dot cythonized?
-    x_meass[:, 0] = x0_state.dot(wgt_meas.T)
+    mat_vec_mult(wgt_meas, x0_state, x_meass[:, 0].T)
     mu_state_preds[:, 0] = mu_state_filts[:, 0]
     var_state_preds[:, :, 0] = var_state_filts[:, :, 0]
     # forward pass
     ktv = KalmanTV(n_dim_meas, n_dim_state)
-    # FIXME: type t
     for t in range(n_eval):
         # kalman filter:
         # 1. predict
@@ -80,9 +85,12 @@ def kalman_ode_higher(fun, # FIXME: this should be cpdef'ed...right?
                     wgt_state = wgt_state,
                     var_state = var_state)
         # 2. chkrebtii interrogation
-        var_meass[:, :, t+1] = np.linalg.multi_dot([wgt_meas, var_state_preds[:, :, t+1], wgt_meas.T]) 
-        R_tt = np.linalg.cholesky(var_state_preds[:, :, t+1])
-        x_state_tt = mu_state_preds[:, t+1] + R_tt.dot(z_state_sim[:, t]) 
+        mat_mult(wgt_meas, var_state_preds[:, :, t+1], var_state_meas)
+        mat_mult(var_state_meas, wgt_meas.T, var_meass[:, :, t+1])
+        ktv.state_sim(x_state_tt, 
+                      mu_state_preds[:, t+1], 
+                      var_state_preds[:, :, t+1], 
+                      z_state_sim[:, t])
         x_meass[:, t+1] = fun(x_state_tt, tmin + (tmax-tmin)*(t+1)/n_eval)
         # 3. update
         ktv.update(mu_state_filt = mu_state_filts[:, t+1],
@@ -97,9 +105,11 @@ def kalman_ode_higher(fun, # FIXME: this should be cpdef'ed...right?
     # backward pass
     mu_state_smooths[:, n_eval] = mu_state_filts[:, n_eval]
     var_state_smooths[:, :, n_eval] = var_state_filts[:, :, n_eval]
-    x_state_smooths[:, n_eval] = np.linalg.cholesky(var_state_smooths[:, :, n_eval]).dot(z_state_sim[:, 2*n_eval+1])
-    x_state_smooths[:, n_eval] += mu_state_smooths[:, n_eval]
-    # FIXME: type t?
+    ktv.state_sim(x_state_smooths[:, n_eval], 
+                  mu_state_smooths[:, n_eval], 
+                  var_state_smooths[:, :, n_eval],
+                  z_state_sim[:, 2*n_eval+1])
+
     for t in reversed(range(n_eval)):
         ktv.smooth(x_state_smooth = x_state_smooths[:, t],
                    mu_state_smooth = mu_state_smooths[:, t],
