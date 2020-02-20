@@ -7,21 +7,6 @@ from linalg.mat_mult import mat_mult, mat_vec_mult
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
 
-# FIXME: where should we be using memory views?  most likely in the inputs,
-# but is there a risk of overwriting things?
-# anywhere else?
-# FIXME: need to replace all calls to np.linalg with low-level C calls.
-# I can think of two ways to do this:
-# 1.  Use BLAS/LAPACK numpy interface.  see `cython-linalg.ipynb`.
-# 2.  Write a C++ class in Eigen to handle the remaining linalg operations.  For example:
-#
-#    ```
-#    class LinalgUtils {
-#    }
-#    ```
-#
-#    The main issue here is that you should malloc everything at object instantiation time, so you'll need to specify the dimensions of all relevant operations.
-
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
@@ -34,7 +19,9 @@ cpdef kalman_ode_higher(fun,
                           double[::1] mu_state, 
                           double[::1, :] var_state,
                           double[::1, :] wgt_meas, 
-                          double[::1, :] z_state_sim):
+                          double[::1, :] z_state_sim,
+                          bint smooth_mv=True,
+                          bint smooth_sim=True):
     # Dimensions of state and measure variables
     cdef int n_dim_meas = wgt_meas.shape[0]
     cdef int n_dim_state = mu_state.shape[0]
@@ -111,6 +98,7 @@ cpdef kalman_ode_higher(fun,
                   z_state_sim[:, 2*n_eval+1])
 
     for t in reversed(range(n_eval)):
+        '''
         ktv.smooth(x_state_smooth = x_state_smooths[:, t],
                    mu_state_smooth = mu_state_smooths[:, t],
                    var_state_smooth = var_state_smooths[:, :, t], 
@@ -123,5 +111,30 @@ cpdef kalman_ode_higher(fun,
                    var_state_pred = var_state_preds[:, :, t+1],
                    wgt_state = wgt_state,
                    z_state = z_state_sim[:, n_eval+t])
+        '''
+        if smooth_mv:
+            ktv.smooth_mv(mu_state_smooth = mu_state_smooths[:, t],
+                          var_state_smooth = var_state_smooths[:, :, t],
+                          mu_state_next = mu_state_smooths[:, t+1],
+                          var_state_next = var_state_smooths[:, :, t+1],
+                          mu_state_filt = mu_state_filts[:, t],
+                          var_state_filt = var_state_filts[:, :, t],
+                          mu_state_pred = mu_state_preds[:, t+1],
+                          var_state_pred = var_state_preds[:, :, t+1],
+                          wgt_state = wgt_state)
+        if smooth_sim:
+            ktv.smooth_sim(x_state_smooth = x_state_smooths[:, t],
+                           x_state_next = x_state_smooths[:, t+1],
+                           mu_state_filt = mu_state_filts[:, t],
+                           var_state_filt = var_state_filts[:, :, t],
+                           mu_state_pred = mu_state_preds[:, t+1],
+                           var_state_pred = var_state_preds[:, :, t+1],
+                           wgt_state = wgt_state,
+                           z_state = z_state_sim[:, n_eval+t])
     
-    return x_state_smooths, mu_state_smooths, var_state_smooths
+    if smooth_mv and smooth_sim:
+        return x_state_smooths, mu_state_smooths, var_state_smooths
+    elif smooth_mv:
+        return mu_state_smooths, var_state_smooths
+    else:
+        return x_state_smooths
