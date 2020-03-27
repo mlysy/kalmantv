@@ -152,7 +152,7 @@ class KalmanTV(object):
         mu_state_sim = mu_state_filt + var_state_temp_tilde.dot(x_state_next - mu_state_pred)
         var_state_sim = var_state_filt - var_state_temp_tilde.dot(var_state_temp.T)
         var_state_sim2 = var_state_sim.dot(var_state_sim.T)
-        x_state_smooth = np.linalg.cholesky(var_state_sim2).dot(z_state)  # Use var_state_sim instead in the real algorithm
+        x_state_smooth = np.linalg.cholesky(var_state_sim).dot(z_state)  # Use var_state_sim instead in the real algorithm
         x_state_smooth += mu_state_sim
         return x_state_smooth
     
