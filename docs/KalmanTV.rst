@@ -1,4 +1,4 @@
-Kalman Class
+KalmanTV Class
 ============
 .. automodule:: kalmantv.cython
 
