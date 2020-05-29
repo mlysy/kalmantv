@@ -24,6 +24,7 @@ ext_modules = [Extension("kalmantv.cython",
                              np.get_include(),
                              "include/eigen-3.3.7",
                              "include"],
+                         extra_compile_args=['-O2'],
                          language='c++')]
 
 setup(
