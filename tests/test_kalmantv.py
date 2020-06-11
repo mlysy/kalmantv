@@ -2,7 +2,9 @@ import unittest
 import numpy as np
 import warnings
 
-from kalmantv.cython import KalmanTV
+#from kalmantv.cython import KalmanTV
+from kalmantv.cython_blas import KalmanTV
+from kalmantv.blas_opt import *
 from .KalmanTV import KalmanTV as KTV_py
 from pykalman import standard as pks
 
@@ -29,6 +31,75 @@ def rand_mat(n, p=None, pd=True):
 # test suite
 
 class KalmanTVTest(unittest.TestCase):
+    def test_vec_mat(self):
+      M = np.random.randint(5) + 1
+      K = np.random.randint(5) + 1
+      A = rand_mat(M, K)
+      alpha = np.random.rand()
+      beta = np.random.rand()
+      transA = np.random.choice([b'N', b'T'])
+      if transA == b'T':
+          x = rand_vec(M)
+          y = rand_vec(K)
+          ans = alpha*A.T.dot(x) + beta*y
+      else:
+          x = rand_vec(K)
+          y = rand_vec(M) 
+          ans = alpha*A.dot(x) + beta*y
+      mat_vec_mult(transA, alpha, A, x, beta, y)
+      self.assertAlmostEqual(rel_err(ans, y), 0.0)
+  
+    def test_mat(self):
+        M = np.random.randint(5) + 1
+        K = np.random.randint(5) + 1
+        N = np.random.randint(5) + 1
+        C = rand_mat(M, N)
+        alpha = np.random.rand()
+        beta = np.random.rand()
+        transA = np.random.choice([b'N', b'T'])
+        transB = np.random.choice([b'N', b'T'])
+        if transA == b'T' and transB == b'T':
+            A = rand_mat(K, M)
+            B = rand_mat(N, K)
+            ans = alpha*A.T.dot(B.T) + beta*C
+        elif transA == b'T':
+            A = rand_mat(K, M)
+            B = rand_mat(K, N)
+            ans = alpha*A.T.dot(B) + beta*C
+        elif transB == b'T':
+            A = rand_mat(M, K)
+            B = rand_mat(N, K)
+            ans = alpha*A.dot(B.T) + beta*C
+        else:
+            A = rand_mat(M, K)
+            B = rand_mat(K, N)
+            ans = alpha*A.dot(B) + beta*C
+        mat_mult(transA, transB, alpha, A, B, beta, C)
+        self.assertAlmostEqual(rel_err(ans, C), 0.0)
+    
+    def test_solveV(self):
+        M = np.random.randint(5) + 1
+        N = np.random.randint(5) + 1
+        V = rand_mat(M)
+        B = rand_mat(M, N)
+        ans = np.linalg.pinv(V).dot(B)
+        U = np.empty((M, M), order='F')
+        X = np.empty((M, N), order='F')
+        solveV(V, B, U, X)
+        self.assertAlmostEqual(rel_err(ans, X), 0.0)
+    
+    def test_tri_vec(self):
+        M = np.random.randint(5) + 1
+        A = rand_mat(M)
+        uplo = b'L'
+        trans = b'N'
+        diag = b'N'
+        B = np.tril(A)
+        z = rand_vec(M)
+        ans = B.dot(z)
+        tri_vec_mult(uplo, trans, diag, A, z)
+        self.assertAlmostEqual(rel_err(ans, z), 0.0)
+        
     def test_predict(self):
         n_meas = np.random.randint(5)
         n_state = n_meas + np.random.randint(5)
@@ -236,7 +307,6 @@ class KalmanTVTest(unittest.TestCase):
         self.assertAlmostEqual(rel_err(mu_state_smooth, mu_state_smooth2), 0.0)
         self.assertAlmostEqual(rel_err(var_state_smooth, var_state_smooth2), 0.0)
         self.assertAlmostEqual(rel_err(x_state_smooth, x_state_smooth2), 0.0)
-        self.assertAlmostEqual(0, 0)
     
     def test_state_sim(self):
         n_meas = np.random.randint(5) + 6

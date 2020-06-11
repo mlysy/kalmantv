@@ -5,10 +5,16 @@
 
 .. mdinclude:: ../README.md
 
-Documentation for KalmanTV Class
+Documentation for Functions
 ================================
 .. toctree::
    :caption: KalmanTV Class
    :maxdepth: 1
 
    ./KalmanTV
+
+.. toctree::
+   :caption: BLAS Operations
+   :maxdepth: 1
+
+   ./BLAS

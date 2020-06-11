@@ -1,6 +1,6 @@
 KalmanTV Class
 ==============
-.. automodule:: kalmantv.cython
+.. automodule:: kalmantv.cython_blas
 
 .. autoclass:: KalmanTV
     :members:

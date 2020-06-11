@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages, Extension
 import numpy as np
+import scipy as sp
 
 # compile with cython if it's installed
 try:
@@ -17,15 +18,29 @@ if USE_CYTHON:
 cpp_modules = ['kalmantv']
 
 # cpp modules
-ext = '.pyx' if USE_CYTHON else '.cpp'
+ext_c = '.pyx' if USE_CYTHON else '.c'
+ext_cpp = '.pyx' if USE_CYTHON else 'cpp'
 ext_modules = [Extension("kalmantv.cython",
-                         ["kalmantv/{}".format(mod)+ext for mod in cpp_modules],
+                         ["kalmantv/{}".format(mod)+ext_cpp for mod in cpp_modules],
                          include_dirs=[
                              np.get_include(),
                              "include/eigen-3.3.7",
                              "include"],
                          extra_compile_args=['-O2'],
-                         language='c++')]
+                         language='c++'),
+               Extension("kalmantv.blas_opt",
+                         ["kalmantv/blas_opt"+ext_c],
+                         include_dirs=[
+                             np.get_include(),
+                             sp.get_include()],
+                         extra_compile_args=["-O2"],
+                         language='c'),
+               Extension("kalmantv.cython_blas",
+                         ["kalmantv/kalmantv_blas"+ext_c],
+                         include_dirs=[
+                             np.get_include()],
+                         extra_compile_args=["-O2"],
+                         language='c')]
 
 setup(
     name="kalmantv",
