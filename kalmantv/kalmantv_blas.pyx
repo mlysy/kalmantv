@@ -28,6 +28,8 @@ cdef class KalmanTV:
     the state at time n given observations from k is given by :math:`\\theta_{n|K}`.
 
     Args:
+        n_state (int): Number of state variables.
+        n_meas (int): Number of measurement variables.
         mu_state_past (ndarray(n_state)): Mean estimate for state at time n-1 given observations from 
             times [0...n-1]; :math:`\mu_{n-1|n-1}`. 
         var_state_past (ndarray(n_state, n_state)): Covariance of estimate for state at time n-1 given 
@@ -44,13 +46,21 @@ cdef class KalmanTV:
             times [0...N]; denoted by :math:`\mu_{n+1|N}`. 
         var_state_next (ndarray(n_state, n_state)): Covariance of estimate for state at time n+1 given 
             observations from times [0...N]; denoted by :math:`\Sigma_{n+1|N}`.
-        mu_state (ndarray(n_state)): Transition_offsets defining the solution prior; denoted by :math:`c`.
-        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the solution prior; denoted by :math:`T`.
-        var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R`.
-        x_meas (ndarray(n_meas)): Measure at time n+1; denoted by :math:`y_{n+1}`.
-        mu_meas (ndarray(n_meas)): Transition_offsets defining the measure prior; denoted by :math:`d`.
-        wgt_meas (ndarray(n_meas, n_meas)): Transition matrix defining the measure prior; denoted by :math:`W`.
-        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`H`.
+        x_state_smooths (ndarray(n_state)): Sample solution at time n given observations from times [0...N];
+            denoted by :math:`X_{n|N}`
+        mu_state_smooth (ndarray(n_state)): Mean estimate for state at time n given observations from 
+            times [0...N]; denoted by :math:`\mu_{n|N}`.
+        var_state_smooth (ndarray(n_state, n_state)): Covariance of estimate for state at time n given 
+            observations from times [0...N]; denoted by :math:`\Sigma_{n|N}`.
+        x_state (ndarray(n_state)): Simulated state vector; :math:`x_n`.
+        mu_state (ndarray(n_state)): Transition_offsets defining the solution prior; denoted by :math:`c_n`.
+        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the solution prior; denoted by :math:`T_n`.
+        var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R_n`.
+        x_meas (ndarray(n_meas)): Interrogated measure vector from `x_state`; :math:`y_n`.
+        mu_meas (ndarray(n_meas)): Transition_offsets defining the measure prior; denoted by :math:`d_n`.
+        wgt_meas (ndarray(n_meas, n_meas)): Transition matrix defining the measure prior; denoted by :math:`W_n`.
+        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`H_n`.
+        z_state (ndarray(n_state)): Random vector simulated from :math:`N(0, 1)`.
 
     """
     cdef int n_state, n_meas
@@ -66,7 +76,7 @@ cdef class KalmanTV:
     cdef double[:, :] llt_meas
     cdef double[:, :] llt_state
     
-    def __cinit__(self, n_meas, n_state):
+    def __cinit__(self, int n_meas, int n_state):
         self.n_meas = n_meas
         self.n_state = n_state
         self.tmu_state = np.empty(n_state, dtype=DTYPE)
