@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-from kalmantv.blas_opt import *
+from kalmantv.blas_opt cimport *
 
 DTYPE = np.double
 
@@ -63,20 +63,21 @@ cdef class KalmanTV:
         z_state (ndarray(n_state)): Random vector simulated from :math:`N(0, 1)`.
 
     """
+    """
     cdef int n_state, n_meas
-    cdef double[:] tmu_state
-    cdef double[:] tmu_state2
-    cdef double[:, :] tvar_state
-    cdef double[:, :] tvar_state2
-    cdef double[:, :] tvar_state3
-    cdef double[:] tmu_meas
-    cdef double[:, :] tvar_meas
-    cdef double[:, :] twgt_meas
-    cdef double[:, :] twgt_meas2
-    cdef double[:, :] llt_meas
-    cdef double[:, :] llt_state
-    
-    def __cinit__(self, int n_meas, int n_state):
+    cdef double[::1] tmu_state
+    cdef double[::1] tmu_state2
+    cdef double[::1, :] tvar_state
+    cdef double[::1, :] tvar_state2
+    cdef double[::1, :] tvar_state3
+    cdef double[::1] tmu_meas
+    cdef double[::1, :] tvar_meas
+    cdef double[::1, :] twgt_meas
+    cdef double[::1, :] twgt_meas2
+    cdef double[::1, :] llt_meas
+    cdef double[::1, :] llt_state
+    """
+    def __init__(self, int n_meas, int n_state):
         self.n_meas = n_meas
         self.n_state = n_state
         self.tmu_state = np.empty(n_state, dtype=DTYPE)
@@ -99,14 +100,14 @@ cdef class KalmanTV:
         self.llt_state = np.empty((n_state, n_state),
                                    dtype=DTYPE, order='F')
       
-    def predict(self,
-                double[::1] mu_state_pred,
-                double[::1, :] var_state_pred,
-                const double[::1] mu_state_past,
-                const double[::1, :] var_state_past,
-                const double[::1] mu_state,
-                const double[::1, :] wgt_state,
-                const double[::1, :] var_state):
+    cpdef void predict(self,
+                       double[::1] mu_state_pred,
+                       double[::1, :] var_state_pred,
+                       const double[::1] mu_state_past,
+                       const double[::1, :] var_state_past,
+                       const double[::1] mu_state,
+                       const double[::1, :] wgt_state,
+                       const double[::1, :] var_state):
         """
         Perform one prediction step of the Kalman filter.
         Calculates :math:`\\theta_{n|n-1}` from :math:`\\theta_{n-1|n-1}`.
@@ -123,15 +124,15 @@ cdef class KalmanTV:
         
         return
     
-    def update(self,
-               double[::1] mu_state_filt,
-               double[::1, :] var_state_filt,
-               const double[::1] mu_state_pred,
-               const double[::1, :] var_state_pred,
-               const double[::1] x_meas,
-               const double[::1] mu_meas,
-               const double[::1, :] wgt_meas,
-               const double[::1, :] var_meas):
+    cpdef void update(self,
+                      double[::1] mu_state_filt,
+                      double[::1, :] var_state_filt,
+                      const double[::1] mu_state_pred,
+                      const double[::1, :] var_state_pred,
+                      const double[::1] x_meas,
+                      const double[::1] mu_meas,
+                      const double[::1, :] wgt_meas,
+                      const double[::1, :] var_meas):
         """
         Perform one update step of the Kalman filter.
         Calculates :math:`\\theta_{n|n}` from :math:`\\theta_{n|n-1}`.
@@ -156,20 +157,20 @@ cdef class KalmanTV:
                  var_beta, var_state_filt)
         return
     
-    def filter(self,
-               double[::1] mu_state_pred,
-               double[::1, :] var_state_pred,
-               double[::1] mu_state_filt,
-               double[::1, :] var_state_filt,
-               const double[::1] mu_state_past,
-               const double[::1, :] var_state_past,
-               const double[::1] mu_state,
-               const double[::1, :] wgt_state,
-               const double[::1, :] var_state,
-               const double[::1] x_meas,
-               const double[::1] mu_meas,
-               const double[::1, :] wgt_meas,
-               const double[::1, :] var_meas):
+    cpdef void filter(self,
+                      double[::1] mu_state_pred,
+                      double[::1, :] var_state_pred,
+                      double[::1] mu_state_filt,
+                      double[::1, :] var_state_filt,
+                      const double[::1] mu_state_past,
+                      const double[::1, :] var_state_past,
+                      const double[::1] mu_state,
+                      const double[::1, :] wgt_state,
+                      const double[::1, :] var_state,
+                      const double[::1] x_meas,
+                      const double[::1] mu_meas,
+                      const double[::1, :] wgt_meas,
+                      const double[::1, :] var_meas):
         """
         Perform one step of the Kalman filter.
         Combines :func:`KalmanTV.predict` and :func:`KalmanTV.update` steps to get :math:`\\theta_{n|n}` from :math:`\\theta_{n-1|n-1}`.
@@ -182,16 +183,16 @@ cdef class KalmanTV:
                     x_meas, mu_meas, wgt_meas, var_meas)
         return
     
-    def smooth_mv(self,
-                  double[::1] mu_state_smooth,
-                  double[::1, :] var_state_smooth,
-                  const double[::1] mu_state_next,
-                  const double[::1, :] var_state_next,
-                  const double[::1] mu_state_filt,
-                  const double[::1, :] var_state_filt,
-                  const double[::1] mu_state_pred,
-                  const double[::1, :] var_state_pred,
-                  const double[::1, :] wgt_state):
+    cpdef void smooth_mv(self,
+                         double[::1] mu_state_smooth,
+                         double[::1, :] var_state_smooth,
+                         const double[::1] mu_state_next,
+                         const double[::1, :] var_state_next,
+                         const double[::1] mu_state_filt,
+                         const double[::1, :] var_state_filt,
+                         const double[::1] mu_state_pred,
+                         const double[::1, :] var_state_pred,
+                         const double[::1, :] wgt_state):
         """
         Perform one step of the Kalman mean/variance smoother.
         Calculates :math:`\\theta_{n|N}` from :math:`\\theta_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
@@ -217,15 +218,15 @@ cdef class KalmanTV:
                  var_state_smooth)
         return
     
-    def smooth_sim(self,
-                   double[::1] x_state_smooth,
-                   const double[::1] x_state_next,
-                   const double[::1] mu_state_filt,
-                   const double[::1, :] var_state_filt,
-                   const double[::1] mu_state_pred,
-                   const double[::1, :] var_state_pred,
-                   const double[::1, :] wgt_state,
-                   const double[::1] z_state):
+    cpdef void smooth_sim(self,
+                          double[::1] x_state_smooth,
+                          const double[::1] x_state_next,
+                          const double[::1] mu_state_filt,
+                          const double[::1, :] var_state_filt,
+                          const double[::1] mu_state_pred,
+                          const double[::1, :] var_state_pred,
+                          const double[::1, :] wgt_state,
+                          const double[::1] z_state):
         """
         Perform one step of the Kalman sampling smoother.
         Calculates a draw :math:`x_{n|N}` from :math:`x_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
@@ -249,19 +250,19 @@ cdef class KalmanTV:
                        self.tvar_state3, z_state)
         return
     
-    def smooth(self,
-               double[::1] x_state_smooth,
-               double[::1] mu_state_smooth,
-               double[::1, :] var_state_smooth,
-               const double[::1] x_state_next,
-               const double[::1] mu_state_next,
-               const double[::1, :] var_state_next,
-               const double[::1] mu_state_filt,
-               const double[::1, :] var_state_filt,
-               const double[::1] mu_state_pred,
-               const double[::1, :] var_state_pred,
-               const double[::1, :] wgt_state,
-               const double[::1] z_state):
+    cpdef void smooth(self,
+                      double[::1] x_state_smooth,
+                      double[::1] mu_state_smooth,
+                      double[::1, :] var_state_smooth,
+                      const double[::1] x_state_next,
+                      const double[::1] mu_state_next,
+                      const double[::1, :] var_state_next,
+                      const double[::1] mu_state_filt,
+                      const double[::1, :] var_state_filt,
+                      const double[::1] mu_state_pred,
+                      const double[::1, :] var_state_pred,
+                      const double[::1, :] wgt_state,
+                      const double[::1] z_state):
         """
         Perform one step of both Kalman mean/variance and sampling smoothers.
         Combines :func:`KalmanTV.smooth_mv` and :func:`KalmanTV.smooth_sim` steps to get :math:`x_{n|N}` and 
@@ -277,11 +278,11 @@ cdef class KalmanTV:
                         wgt_state, z_state)
         return
     
-    def state_sim(self,
-                  double[::1] x_state,
-                  double[::1] mu_state,
-                  double[::1, :] var_state,
-                  double[::1] z_state):
+    cpdef void state_sim(self,
+                         double[::1] x_state,
+                         const double[::1] mu_state,
+                         const double[::1, :] var_state,
+                         const double[::1] z_state):
         """
         Simulates from a normal distribution with mean `mu_state`, variance `var_state`,
         and randomness `z_state` drawn from :math:`N(0, 1)`.

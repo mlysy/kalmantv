@@ -7,8 +7,8 @@ from scipy.linalg.cython_lapack cimport dpotrf, dpotrs, dlacpy
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
 
-cpdef vec_copy(const double[::1] x,
-               double[::1] y):
+cpdef void vec_copy(const double[::1] x,
+                    double[::1] y):
     """
     Copies vector x to y.
 
@@ -24,8 +24,8 @@ cpdef vec_copy(const double[::1] x,
     blas.dcopy(&N, &x[0], &incx, &y[0], &incy)
     return
 
-cpdef mat_copy(const double[::1, :] A,
-               double[::1, :] B):
+cpdef void mat_copy(const double[::1, :] A,
+                    double[::1, :] B):
     """
     Copies Matrix A to B.
 
@@ -42,9 +42,9 @@ cpdef mat_copy(const double[::1, :] A,
     dlacpy(&uplo[0], &M, &N, &A[0, 0], &lda, &B[0, 0], &ldb)
     return
 
-cpdef vec_add(const double alpha, 
-              const double[::1] x,
-              double[::1] y):
+cpdef void vec_add(const double alpha, 
+                   const double[::1] x,
+                   double[::1] y):
     """
     Calculates :math:`y = \\alpha x + y`.
 
@@ -64,22 +64,22 @@ cpdef vec_add(const double alpha,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
-cpdef mat_add(const double alpha,
-              const double[::1, :] A,
-              const double beta,
-              double[::1, :] B):
+cpdef void mat_add(const double alpha,
+                   const double[::1, :] A,
+                   const double beta,
+                   double[::1, :] B):
     cdef int M = A.shape[0], N = A.shape[1]
     for i in range(M):
         for j in range(N):
             B[i, j] = alpha*A[i, j] + beta*B[i, j]
     return
 
-cpdef mat_vec_mult(char* trans, 
-                   const double alpha, 
-                   const double[::1, :] A, 
-                   const double[::1] x, 
-                   const double beta,
-                   double[::1] y):
+cpdef void mat_vec_mult(char* trans, 
+                        const double alpha, 
+                        const double[::1, :] A, 
+                        const double[::1] x, 
+                        const double beta,
+                        double[::1] y):
     """
     Calculates :math:`y = \\alpha A x + \\beta y`.
 
@@ -99,11 +99,11 @@ cpdef mat_vec_mult(char* trans,
     blas.dgemv(&trans[0], &M, &N, &alpha, &A[0, 0], &lda, &x[0], &incx, &beta, &y[0], &incy)
     return
 
-cpdef tri_vec_mult(char* uplo,
-                   char* trans,
-                   char* diag, 
-                   const double[::1, :] A, 
-                   const double[::1] x):
+cpdef void tri_vec_mult(char* uplo,
+                        char* trans,
+                        char* diag, 
+                        const double[::1, :] A, 
+                        const double[::1] x):
     """
     Calculates :math:`x = A x` where A is a triangular matrix.
 
@@ -122,13 +122,13 @@ cpdef tri_vec_mult(char* uplo,
     blas.dtrmv(&uplo[0], &trans[0], &diag[0], &N, &A[0, 0], &lda, &x[0], &incx)
     return
 
-cpdef mat_mult(char* transa, 
-               char* transb, 
-               const double alpha, 
-               const double[::1, :] A, 
-               const double[::1, :] B,
-               const double beta, 
-               double[::1, :] C):
+cpdef void mat_mult(char* transa, 
+                    char* transb, 
+                    const double alpha, 
+                    const double[::1, :] A, 
+                    const double[::1, :] B,
+                    const double beta, 
+                    double[::1, :] C):
     """
     Calculates :math:`C = \\alpha A B + \\beta C`.
 
@@ -166,16 +166,16 @@ cpdef mat_mult(char* transa,
     blas.dgemm(&transa[0], &transb[0], &M, &N, &K, &alpha, &A[0, 0], &lda, &B[0, 0], &ldb, &beta, &C[0, 0], &ldc)
     return
 
-cpdef mat_triple_mult(char* transa, 
-                      char* transb, 
-                      char* transc, 
-                      const double alpha, 
-                      const double[::1, :] A, 
-                      const double[::1, :] B, 
-                      double[::1, :] temp, 
-                      const double[::1, :] C, 
-                      const double beta,
-                      double[::1, :] D):
+cpdef void mat_triple_mult(char* transa, 
+                           char* transb, 
+                           char* transc, 
+                           const double alpha, 
+                           const double[::1, :] A, 
+                           const double[::1, :] B, 
+                           double[::1, :] temp, 
+                           const double[::1, :] C, 
+                           const double beta,
+                           double[::1, :] D):
     """
     Calculates :math:`D = \\alpha A B C + \\beta D`.
 
@@ -203,8 +203,8 @@ cpdef mat_triple_mult(char* transa,
     mat_mult(trans1, transc, alpha, temp, C, beta, D)
     return
 
-cpdef chol_fact(const double[::1, :] V,
-                double[::1, :] U):
+cpdef void chol_fact(const double[::1, :] V,
+                     double[::1, :] U):
     """
     Computes the cholesky factorization of variance matrix V.
     
@@ -222,10 +222,10 @@ cpdef chol_fact(const double[::1, :] V,
     dpotrf(&uplo[0], &N, &U[0,0], &lda, &info)
     return 
 
-cpdef solveV(const double[::1, :] V, 
-             const double[::1, :] B, 
-             double[::1, :] U,
-             double[::1, :] X):
+cpdef void solveV(const double[::1, :] V, 
+                  const double[::1, :] B, 
+                  double[::1, :] U,
+                  double[::1, :] X):
     """
     Solves X in :math:`VX = B`, where V is a variance matrix.
     
