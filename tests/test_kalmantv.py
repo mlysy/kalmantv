@@ -3,9 +3,9 @@ import numpy as np
 import warnings
 
 #from kalmantv.cython import KalmanTV
-from kalmantv.cython_blas import KalmanTV
+from kalmantv.kalmantv_blas import KalmanTV
 from kalmantv.blas_opt import *
-from .KalmanTV import KalmanTV as KTV_py
+from KalmanTV import KalmanTV as KTV_py
 from pykalman import standard as pks
 
 # helper functions

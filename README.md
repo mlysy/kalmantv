@@ -67,6 +67,7 @@ pip install .
 The unit tests are done against the **pykalman** library to ensure the same results.
 ```bash
 cd kalmantv
+cd tests
 python -m unittest discover -v
 ```
 

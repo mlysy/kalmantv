@@ -35,7 +35,7 @@ ext_modules = [Extension("kalmantv.cython",
                              sp.get_include()],
                          extra_compile_args=["-O2"],
                          language='c'),
-               Extension("kalmantv.cython_blas",
+               Extension("kalmantv.kalmantv_blas",
                          ["kalmantv/kalmantv_blas"+ext_c],
                          include_dirs=[
                              np.get_include()],
@@ -51,11 +51,12 @@ setup(
     keywords="Kalman Eigen Cython",
     url="http://github.com/mlysy/kalmantv",
     packages=['kalmantv'],
+    package_data = {'kalmantv': ["*.pxd", "__init__.pyx"]},
 
     # cython
     cmdclass=cmdclass,
     ext_modules=ext_modules,
-
+ 
     install_requires=['numpy', 'scipy'],
     setup_requires=['setuptools>=38'],
 )
