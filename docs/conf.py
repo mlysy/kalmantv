@@ -12,9 +12,18 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+from recommonmark.transform import AutoStructify
+import recommonmark
+import os
+import sys
+sys.path.insert(0, os.path.abspath('..'))
+
+# create index file
+fcon = open("index.md", "w")
+fcon.truncate(0)
+for ifile in ["../README.md", "toc.md"]:
+    fcon.write(open(ifile, "r").read())
+fcon.close()
 
 # -- Project information -----------------------------------------------------
 
@@ -43,8 +52,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
-    'm2r',
-    #'recommonmark'
+    # 'm2r',
+    'recommonmark'
 ]
 
 # Remove method table from numpydoc to get rid of warnings
@@ -175,3 +184,13 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+
+# app setup hook
+def setup(app):
+    app.add_config_value('recommonmark_config', {
+        # 'url_resolver': lambda url: github_doc_root + url,
+        # 'auto_toc_tree_section': 'Contents',
+        'enable_eval_rst': True,
+        # 'enable_auto_doc_ref': True,
+    }, True)
+    app.add_transform(AutoStructify)

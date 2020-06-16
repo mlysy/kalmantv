@@ -68,6 +68,9 @@ cpdef mat_add(const double alpha,
               const double[::1, :] A,
               const double beta,
               double[::1, :] B):
+    r"""
+    Calculates :math:`B = \alpha A + \beta B`.
+    """
     cdef int M = A.shape[0], N = A.shape[1]
     for i in range(M):
         for j in range(N):

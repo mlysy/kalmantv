@@ -83,3 +83,20 @@ python -m unittest discover -v
 - [X] Replace test functions in `tests/test_kalmantv.py` with `kalmantv` class from **probDE**.  This is basically just copying `kalmantv.py` to `tests` folder, and adding `import kalmantv` at the top of `test_kalmantv.py`.
 
 - [X] Test Cython interface (i.e., using `cimport`, but don't need to worry about this for now). 
+
+## Documentation for Functions
+
+```eval_rst
+.. toctree::
+   :caption: KalmanTV Class
+   :maxdepth: 1
+
+   ./KalmanTV
+
+.. toctree::
+   :caption: BLAS Operations
+   :maxdepth: 1
+
+   ./BLAS
+```
+
