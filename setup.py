@@ -51,7 +51,7 @@ setup(
     keywords="Kalman Eigen Cython",
     url="http://github.com/mlysy/kalmantv",
     packages=['kalmantv'],
-    package_data = {'kalmantv': ["*.pxd", "__init__.pyx"]},
+    package_data = {'kalmantv': ["*.pxd"]},
 
     # cython
     cmdclass=cmdclass,

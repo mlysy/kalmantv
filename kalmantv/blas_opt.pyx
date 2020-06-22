@@ -1,20 +1,21 @@
-from scipy.linalg.cython_lapack cimport dpotrf, dpotrs, dlacpy
+
 import numpy as np
 cimport numpy as np
 cimport cython
 cimport scipy.linalg.cython_blas as blas
+from scipy.linalg.cython_lapack cimport dpotrf, dpotrs, dlacpy
 
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
 
-cpdef void vec_copy(const double[::1] x,
-                    double[::1] y):
-    """
+cpdef void vec_copy(double[::1] y,
+                    const double[::1] x):
+    r"""
     Copies vector x to y.
 
     Args:
-        x (ndarray(N)): Vector x.
         y (ndarray(N)): Returned vector.
+        x (ndarray(N)): Vector x.
 
     Returns:
         (ndarray(M)): Copied vector y.
@@ -24,14 +25,14 @@ cpdef void vec_copy(const double[::1] x,
     blas.dcopy( & N, & x[0], & incx, & y[0], & incy)
     return
 
-cpdef void mat_copy(const double[::1, :] A,
-                    double[::1, :] B):
-    """
+cpdef void mat_copy(double[::1, :] B,
+                    const double[::1, :] A):
+    r"""
     Copies Matrix A to B.
 
     Args:
-        A (ndarray(N)): Matrix A.
         B (ndarray(N)): Returned matrix.
+        A (ndarray(N)): Matrix A.
 
     Returns:
         (ndarray(M)): Copied matrix B.
@@ -42,19 +43,19 @@ cpdef void mat_copy(const double[::1, :] A,
     dlacpy( & uplo[0], & M, & N, & A[0, 0], & lda, & B[0, 0], & ldb)
     return
 
-cpdef void vec_add(const double alpha,
-                   const double[::1] x,
-                   double[::1] y):
-    """
-    Calculates :math:`y = \\alpha x + y`.
+cpdef void vec_add(double[::1] y,
+                   const double alpha,
+                   const double[::1] x):
+    r"""
+    Calculates :math:`y = \alpha x + y`.
 
     Args:
-        alpha (double): Scalar :math:`\\alpha`.
-        x (ndarray(N)): Vector x.
         y (ndarray(N)): Returned vector.
+        alpha (double): Scalar :math:`\alpha`.
+        x (ndarray(N)): Vector x.
 
     Returns:
-        (ndarray(M)): :math:`y = \\alpha x + y`.
+        (ndarray(M)): :math:`y = \alpha x + y`.
 
     """
     cdef int N = len(x), incx = 1, incy = 1
@@ -65,12 +66,22 @@ cpdef void vec_add(const double alpha,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
-cpdef mat_add(const double alpha,
-              const double[::1, :] A,
-              const double beta,
-              double[::1, :] B):
+cpdef void mat_add(double[::1, :] B,
+                   const double alpha,
+                   const double beta,
+                   const double[::1, :] A):
     r"""
     Calculates :math:`B = \alpha A + \beta B`.
+
+    Args:
+        B (ndarray(N)): Returned matrix.
+        alpha (double): Scalar :math:`\alpha`.
+        beta (double): Scalar :math:`\beta`.
+        A (ndarray(N)): Matrix A.
+        
+    Returns:
+        (ndarray(M)): :math:`B = \alpha A + \beta B`.
+
     """
     cdef int M = A.shape[0], N = A.shape[1]
     for i in range(M):
@@ -78,45 +89,45 @@ cpdef mat_add(const double alpha,
             B[i, j] = alpha*A[i, j] + beta*B[i, j]
     return
 
-cpdef void mat_vec_mult(char * trans,
+cpdef void mat_vec_mult(double[::1] y,
+                        char * trans,
                         const double alpha,
-                        const double[::1, :] A,
-                        const double[::1] x,
                         const double beta,
-                        double[::1] y):
-    """
-    Calculates :math:`y = \\alpha A x + \\beta y`.
+                        const double[::1, :] A,
+                        const double[::1] x):
+    r"""
+    Calculates :math:`y = \alpha A x + \beta y`.
 
     Args:
+        y (ndarray(M)): Returned vector.
         trans (char): Specifies if matrix A should be transposed.
-        alpha (double): Scalar :math:`\\alpha`.
+        alpha (double): Scalar :math:`\alpha`.
+        beta (double): Scalar :math:`\beta`.
         A (ndarray(M, N)): Matrix A.
         x (ndarray(N)): Vector x.
-        beta (double): Scalar :math:`\\beta`.
-        y (ndarray(M)): Returned vector.
-
+        
     Returns:
-        (ndarray(M)): :math:`y = \\alpha A x + \\beta y`.
+        (ndarray(M)): :math:`y = \alpha A x + \beta y`.
 
     """
     cdef int M = A.shape[0], N = A.shape[1], lda = M, incx = 1, incy = 1
     blas.dgemv( & trans[0], & M, & N, & alpha, & A[0, 0], & lda, & x[0], & incx, & beta, & y[0], & incy)
     return
 
-cpdef void tri_vec_mult(char * uplo,
+cpdef void tri_vec_mult(double[::1] x,
+                        char * uplo,
                         char * trans,
                         char * diag,
-                        const double[::1, :] A,
-                        const double[::1] x):
-    """
+                        const double[::1, :] A):
+    r"""
     Calculates :math:`x = A x` where A is a triangular matrix.
 
     Args:
+        x (ndarray(N)): Vector x.
         uplo (char): Specifies if matrix A is upper or lower triangular.
         trans (char): Specifies if matrix A should be transposed.
         diag (char): Specifies if matrix A is unit triangular.
         A (ndarray(M, N)): Matrix A.
-        x (ndarray(N)): Vector x.
 
     Returns:
         (ndarray(M)): :math:`x = A x`.
@@ -126,27 +137,27 @@ cpdef void tri_vec_mult(char * uplo,
     blas.dtrmv(& uplo[0], & trans[0], & diag[0], & N, & A[0, 0], & lda, & x[0], & incx)
     return
 
-cpdef void mat_mult(char * transa,
+cpdef void mat_mult(double[::1, :] C,
+                    char * transa,
                     char * transb,
                     const double alpha,
-                    const double[::1, :] A,
-                    const double[::1, :] B,
                     const double beta,
-                    double[::1, :] C):
-    """
-    Calculates :math:`C = \\alpha A B + \\beta C`.
+                    const double[::1, :] A,
+                    const double[::1, :] B):
+    r"""
+    Calculates :math:`C = \alpha A B + \beta C`.
 
     Args:
+        C (ndarray(M, N)): Returned matrix.
         transa (char): Specifies if matrix A should be transposed.
         transb (char): Specifies if matrix B should be transposed.
-        alpha (double): Scalar :math:`\\alpha`.
+        alpha (double): Scalar :math:`\alpha`.
+        beta (double): Scalar :math:`\beta`.
         A (ndarray(M, K)): First matrix.
         B (ndarray(K, N)): Second matrix.
-        beta (double): Scalar :math:`\\beta`.
-        C (ndarray(M, N)): Returned matrix.
 
     Returns:
-        (ndarray(M, N)): :math:`C = \\alpha A B + \\beta C`.
+        (ndarray(M, N)): :math:`C = \alpha A B + \beta C`.
 
     """
     # get dimensions
@@ -170,75 +181,77 @@ cpdef void mat_mult(char * transa,
     blas.dgemm( & transa[0], & transb[0], & M, & N, & K, & alpha, & A[0, 0], & lda, & B[0, 0], & ldb, & beta, & C[0, 0], & ldc)
     return
 
-cpdef void mat_triple_mult(char * transa,
+cpdef void mat_triple_mult(double[::1, :] D,
+                           double[::1, :] temp,
+                           char * transa,
                            char * transb,
                            char * transc,
                            const double alpha,
+                           const double beta,
                            const double[::1, :] A,
                            const double[::1, :] B,
-                           double[::1, :] temp,
-                           const double[::1, :] C,
-                           const double beta,
-                           double[::1, :] D):
-    """
-    Calculates :math:`D = \\alpha A B C + \\beta D`.
+                           const double[::1, :] C):
+    r"""
+    Calculates :math:`D = \alpha A B C + \beta D`.
 
     Args:
+        D (ndarray(L, N)): Returned matrix.
+        temp (ndarray(M, L)): Temp matrix for intermediate matrix multiplication; :math:`AB`.
         transa (char): Specifies if matrix A should be transposed.
         transb (char): Specifies if matrix B should be transposed.
         transc (char): Specifies if matrix C should be transposed.
-        alpha (double): Scalar :math:`\\alpha`.
+        alpha (double): Scalar :math:`\alpha`.
+        beta (double): Scalar :math:`\beta`.
         A (ndarray(M, K)): First matrix.
         B (ndarray(K, L)): Second matrix.
-        temp (ndarray(M, L)): Temp matrix for intermediate matrix multiplication; :math:`AB`.
         C (ndarray(L, N)): Third matrix.
-        beta (double): Scalar :math:`\\beta`.
-        D (ndarray(L, N)): Returned matrix.
 
     Returns:
-        (ndarray(M, N)): :math:`D = \\alpha A B C + \\beta D`.
+        (tuple):
+        - **D** (ndarray(M, N)): :math:`D = \alpha A B C + \beta D`.
+        - **temp** (ndarray(M, L)): :math:`AB`.
 
     """
     # Temp alpha, beta
     cdef int alpha1 = 1, beta1 = 0
     # Temp trans
     cdef char * trans1 = 'N'
-    mat_mult(transa, transb, alpha1, A, B, beta1, temp)
-    mat_mult(trans1, transc, alpha, temp, C, beta, D)
+    mat_mult(temp, transa, transb, alpha1, beta1, A, B)
+    mat_mult(D, trans1, transc, alpha, beta, temp, C)
     return
 
-cpdef void chol_fact(const double[::1, :] V,
-                     double[::1, :] U):
-    """
+cpdef void chol_fact(double[::1, :] L,
+                     const double[::1, :] V):
+    r"""
     Computes the cholesky factorization of variance matrix V.
 
     Args:
+        L (ndarray(N, M)): Returned matrix.
         V (ndarray(N, N)): Variance matrix.
-        U (ndarray(N, M)): Returned matrix.
-
+    
     Returns:
-        (ndarray(N, M)): Cholesky factorization of variance matrix V
+        (ndarray(N, M)): Cholesky factorization of variance matrix V.
 
     """
     cdef char * uplo = 'L'
     cdef int N = V.shape[0], lda = N, info
-    mat_copy(V, U)  # operates in-place, so this prevents V from being overwritten
-    dpotrf(& uplo[0], & N, & U[0, 0], & lda, & info)
+    mat_copy(L, V)  # operates in-place, so this prevents V from being overwritten
+    dpotrf(& uplo[0], & N, & L[0, 0], & lda, & info)
     return
 
-cpdef void solveV(const double[::1, :] V,
-                  const double[::1, :] B,
-                  double[::1, :] U,
-                  double[::1, :] X):
-    """
+cpdef void solveV(double[::1, :] U,
+                  double[::1, :] X,
+                  const double[::1, :] V,
+                  const double[::1, :] B):
+    r"""
     Solves X in :math:`VX = B`, where V is a variance matrix.
 
     Args:
+        U (ndarray(N, M)): Temp matrix for intermediate storage; cholesky factorization of V.
+        X (ndarray(N, M)): Returned matrix.
         V (ndarray(N, N)): Variance matrix.
         B (ndarray(N, M)): Second matrix.
-        U (ndarray(N, M)): Temp matrix for intermediate storage.
-        X (ndarray(N, M)): Returned matrix.
-
+        
     Returns:
         (ndarray(N, M)): X in :math:`VX = B`.
 
@@ -246,10 +259,9 @@ cpdef void solveV(const double[::1, :] V,
     # get dimensions
     cdef int n = V.shape[0], nrhs = B.shape[1], lda = n, ldb = n, info
     cdef char * uplo = 'U'
-    # cholesky factor
-    mat_copy(V, U)  # operates in-place, so this prevents V from being overwritten
+    mat_copy(U, V)  # operates in-place, so this prevents V from being overwritten
     dpotrf(& uplo[0], & n, & U[0, 0], & lda, & info)
     # solve system with cholesky factor
-    mat_copy(B, X)  # again prevents overwriting
+    mat_copy(X, B)  # again prevents overwriting
     dpotrs(& uplo[0], & n, & nrhs, & U[0, 0], & lda, & X[0, 0], & ldb, & info)
     return

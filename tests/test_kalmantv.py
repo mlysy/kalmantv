@@ -46,7 +46,7 @@ class KalmanTVTest(unittest.TestCase):
           x = rand_vec(K)
           y = rand_vec(M) 
           ans = alpha*A.dot(x) + beta*y
-      mat_vec_mult(transA, alpha, A, x, beta, y)
+      mat_vec_mult(y, transA, alpha, beta, A, x)
       self.assertAlmostEqual(rel_err(ans, y), 0.0)
   
     def test_mat(self):
@@ -74,7 +74,7 @@ class KalmanTVTest(unittest.TestCase):
             A = rand_mat(M, K)
             B = rand_mat(K, N)
             ans = alpha*A.dot(B) + beta*C
-        mat_mult(transA, transB, alpha, A, B, beta, C)
+        mat_mult(C, transA, transB, alpha, beta, A, B)
         self.assertAlmostEqual(rel_err(ans, C), 0.0)
     
     def test_solveV(self):
@@ -85,7 +85,7 @@ class KalmanTVTest(unittest.TestCase):
         ans = np.linalg.pinv(V).dot(B)
         U = np.empty((M, M), order='F')
         X = np.empty((M, N), order='F')
-        solveV(V, B, U, X)
+        solveV( U, X, V, B)
         self.assertAlmostEqual(rel_err(ans, X), 0.0)
     
     def test_tri_vec(self):
@@ -97,7 +97,7 @@ class KalmanTVTest(unittest.TestCase):
         B = np.tril(A)
         z = rand_vec(M)
         ans = B.dot(z)
-        tri_vec_mult(uplo, trans, diag, A, z)
+        tri_vec_mult(z, uplo, trans, diag, A)
         self.assertAlmostEqual(rel_err(ans, z), 0.0)
         
     def test_predict(self):

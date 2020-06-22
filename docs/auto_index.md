@@ -67,6 +67,7 @@ pip install .
 The unit tests are done against the **pykalman** library to ensure the same results.
 ```bash
 cd kalmantv
+cd tests
 python -m unittest discover -v
 ```
 
@@ -88,15 +89,7 @@ python -m unittest discover -v
 
 ```eval_rst
 .. toctree::
-   :caption: KalmanTV Class
    :maxdepth: 1
 
-   ./KalmanTV
-
-.. toctree::
-   :caption: BLAS Operations
-   :maxdepth: 1
-
-   ./BLAS
+   ./func_doc
 ```
-
