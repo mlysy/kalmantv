@@ -1,10 +1,29 @@
 import numpy as np
 cimport numpy as np
 
-from kalmantv.blas_opt cimport *
+from .blas_opt cimport *
 
 DTYPE = np.double
 
+cpdef void state_sim(double[::1] x_state,
+                     double[::1, :] llt_state,
+                     const double[::1] mu_state,
+                     const double[::1, :] var_state,
+                     const double[::1] z_state):
+    """
+    Simulates from a normal distribution with mean `mu_state`, variance `var_state`,
+    and randomness `z_state` drawn from :math:`N(0, 1)`.
+    """
+    cdef char* trans = 'N'
+    cdef char* uplo = 'L'
+    cdef char* diag = 'N'
+    cdef int x_alpha = 1
+    chol_fact(llt_state, var_state)
+    vec_copy(x_state, z_state)
+    tri_vec_mult(x_state, uplo, trans, diag, llt_state)
+    vec_add(x_state, x_alpha, mu_state)
+    return
+    
 cdef class KalmanTV:
     r"""
     Create a Kalman Time-Varying object. The methods of the object can predict, update, sample and 
@@ -24,7 +43,7 @@ cdef class KalmanTV:
     observation at time n.
 
     The variables of the model are defined below in the argument section. The methods of this class
-    calculates :math:`\\theta = (\mu, \Sigma)` for :math:`X_n` and the notation for
+    calculates :math:`\theta = (\mu, \Sigma)` for :math:`X_n` and the notation for
     the state at time n given observations from k is given by :math:`\theta_{n|K}`.
 
     Args:
@@ -233,8 +252,8 @@ cdef class KalmanTV:
         mat_copy(self.tvar_state3, var_state_filt)
         mat_mult(self.tvar_state3, var_trans, var_trans2, tvar_alpha2, tvar_beta2, self.tvar_state2, 
                  self.tvar_state)
-        self.state_sim(x_state_smooth, self.tmu_state2,
-                       self.tvar_state3, z_state)
+        state_sim(x_state_smooth, self.llt_state, self.tmu_state2,
+                  self.tvar_state3, z_state)
         return
     
     cpdef void smooth(self,
@@ -263,24 +282,5 @@ cdef class KalmanTV:
                         mu_state_filt, var_state_filt,
                         mu_state_pred, var_state_pred, 
                         wgt_state, z_state)
-        return
-    
-    cpdef void state_sim(self,
-                         double[::1] x_state,
-                         const double[::1] mu_state,
-                         const double[::1, :] var_state,
-                         const double[::1] z_state):
-        """
-        Simulates from a normal distribution with mean `mu_state`, variance `var_state`,
-        and randomness `z_state` drawn from :math:`N(0, 1)`.
-        """
-        cdef char* trans = 'N'
-        cdef char* uplo = 'L'
-        cdef char* diag = 'N'
-        cdef int x_alpha = 1
-        chol_fact(self.llt_state, var_state)
-        vec_copy(x_state, z_state)
-        tri_vec_mult(x_state, uplo, trans, diag, self.llt_state)
-        vec_add(x_state, x_alpha, mu_state)
         return
     

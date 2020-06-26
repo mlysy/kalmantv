@@ -20,15 +20,7 @@ cpp_modules = ['kalmantv']
 # cpp modules
 ext_c = '.pyx' if USE_CYTHON else '.c'
 ext_cpp = '.pyx' if USE_CYTHON else 'cpp'
-ext_modules = [Extension("kalmantv.cython",
-                         ["kalmantv/{}".format(mod)+ext_cpp for mod in cpp_modules],
-                         include_dirs=[
-                             np.get_include(),
-                             "include/eigen-3.3.7",
-                             "include"],
-                         extra_compile_args=['-O2'],
-                         language='c++'),
-               Extension("kalmantv.blas_opt",
+ext_modules = [Extension("kalmantv.blas_opt",
                          ["kalmantv/blas_opt"+ext_c],
                          include_dirs=[
                              np.get_include(),
@@ -41,6 +33,15 @@ ext_modules = [Extension("kalmantv.cython",
                              np.get_include()],
                          extra_compile_args=["-O2"],
                          language='c')]
+            #    Extension("kalmantv.cython",
+#                          ["kalmantv/{}".format(mod)+ext_cpp for mod in cpp_modules],
+#                          include_dirs=[
+#                              np.get_include(),
+#                              "include/eigen-3.3.7",
+#                              "include"],
+#                          extra_compile_args=['-O2'],
+#                          language='c++'),
+               
 
 setup(
     name="kalmantv",

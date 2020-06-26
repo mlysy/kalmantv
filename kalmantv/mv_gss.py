@@ -1,4 +1,32 @@
 import numpy as np
+import scipy.linalg as scl
+
+def mvncond(mu, Sigma, icond):
+    """
+    Calculates A, b, and V such that :math:`y[!icond] | y[icond] \sim N(A y[icond] + b, V)`.
+
+    Args:
+        mu (ndarray(2*n_dim)): Mean of y.
+        Sigma (ndarray(2*n_dim, 2*n_dim)): Covariance of y. 
+        icond (ndarray(2*nd_dim)): Conditioning on the terms given.
+
+    Returns:
+        (tuple):
+        - **A** (ndarray(n_dim, n_dim)): For :math:`y \sim N(\mu, \Sigma)` 
+          such that :math:`y[!icond] | y[icond] \sim N(A y[icond] + b, V)` Calculate A.
+        - **b** (ndarray(n_dim)): For :math:`y \sim N(\mu, \Sigma)` 
+          such that :math:`y[!icond] | y[icond] \sim N(A y[icond] + b, V)` Calculate b.
+        - **V** (ndarray(n_dim, n_dim)): For :math:`y \sim N(\mu, \Sigma)`
+          such that :math:`y[!icond] | y[icond] \sim N(A y[icond] + b, V)` Calculate V.
+
+    """
+    # if y1 = y[~icond] and y2 = y[icond], should have A = Sigma12 * Sigma22^{-1}
+    A = np.dot(Sigma[np.ix_(~icond, icond)], scl.cho_solve(
+        scl.cho_factor(Sigma[np.ix_(icond, icond)]), np.identity(sum(icond))))
+    b = mu[~icond] - np.dot(A, mu[icond])  # mu1 - A * mu2
+    V = Sigma[np.ix_(~icond, ~icond)] - np.dot(A,
+                                               Sigma[np.ix_(icond, ~icond)])  # Sigma11 - A * Sigma21
+    return A, b, V
 
 def ss2gss(wgt_states, mu_states, chol_states, wgt_meass, mu_meass, chol_meass):
     r"""
@@ -73,7 +101,7 @@ def ss2gss(wgt_states, mu_states, chol_states, wgt_meass, mu_meass, chol_meass):
     wgt_gsss[:, :, 0] = np.nan
     return wgt_gsss, mu_gsss, chol_gsss
 
-def mvgss(wgt_gsss, mu_gsss, chol_gsss):
+def mv_gss(wgt_gsss, mu_gsss, chol_gsss):
     r"""
     Calculate the mean and variance of the joint density :math:`Y=(Y_0, Y_1, \ldots, Y_n)` where 
     :math:`Y_n` is the Gaussian process.

@@ -1,3 +1,9 @@
+cpdef void state_sim(double[::1] x_state,
+                     double[::1, :] llt_state,
+                     const double[::1] mu_state,
+                     const double[::1, :] var_state,
+                     const double[::1] z_state)
+
 cdef class KalmanTV:
     cdef int n_state, n_meas
     cdef double[::1] tmu_state
@@ -75,9 +81,5 @@ cdef class KalmanTV:
                       const double[::1, :] var_state_pred,
                       const double[::1, :] wgt_state,
                       const double[::1] z_state)
-    cpdef void state_sim(self,
-                         double[::1] x_state,
-                         const double[::1] mu_state,
-                         const double[::1, :] var_state,
-                         const double[::1] z_state)
+
             
