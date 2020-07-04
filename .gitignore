@@ -6,3 +6,4 @@ __pycache__
 *.pyd
 *.html
 tee.ipynb
+include/eigen-3.3.7/
