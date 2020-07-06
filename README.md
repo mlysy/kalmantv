@@ -2,11 +2,10 @@
 
 ## Description
 
-**kalmantv** is a Cython library that implements the Kalman Filering and Smoothing algorithms. The library consists of a low-level backend written in C++ with the state-of-the-art **Eigen** library wrapped in Cython to allow usage in Python. 
+**kalmantv** is a Cython library that implements the Kalman Filering and Smoothing algorithms. 
 
 ### Folder structure
 
-**include** is pure C++ code containing the backend Kalman Filtering and Smoothing algorithms.
 **kalmantv** is Cython code containing the Cython wrappers for usage in Python.
 
 ## Usage
@@ -15,7 +14,7 @@ The usage of the library can be demonstrated through this simple example.
 
 ```python
 import numpy as np
-from kalmantv.cython import KalmanTV
+from kalmantv import KalmanTV
 n_meas = 2 # Set the size of the measurement
 n_state = 4 # Set the size of the state
 
@@ -71,15 +70,7 @@ cd tests
 python -m unittest discover -v
 ```
 
-## Wrapping **Eigen**
-
-- Pure C++ code: **Eigen**-based class and methods.  The methods to be wrapped in Cython must accept vectors/matrices as column-major `double*` arrays, to be converted to **Eigen** types with `Map`.  For now this is in `kalmancpp/KalmanTV.h`.
-
-- Cython wrapper: Need to convert between "memory views" and the `double*` inputs.  For now this is in `include/KalmanTV.pxd` (Cython interface) and `include/kalmantv.pyx` (Python interface).
-
 ## TODO
-
-- [X] Add remaining **kalmantv** methods to `KalmanTV.h`, `KalmanTV.pxd`, and `kalmantv.pyx`, and of course test the methods (see how to do this in `tests/test_kalmantv.py`).
 
 - [X] Replace test functions in `tests/test_kalmantv.py` with `kalmantv` class from **probDE**.  This is basically just copying `kalmantv.py` to `tests` folder, and adding `import kalmantv` at the top of `test_kalmantv.py`.
 
