@@ -13,6 +13,19 @@ cpdef void state_sim(double[::1] x_state,
     """
     Simulates from a normal distribution with mean `mu_state`, variance `var_state`,
     and randomness `z_state` drawn from :math:`N(0, 1)`.
+
+    Args:
+        x_state (ndarray(n_state)): Simulated state.
+        llt_state (ndarray(n_state, n_state)): Temporary matrix to store cholesky factorization.
+        mu_state (ndarray(n_state)): Mean vector.
+        var_state (ndarray(n_state, n_state)): Variance matrix.
+        z_state (ndarray(n_state)): Random vector simulated from :math:`N(0, 1)`.
+    
+    Returns:
+        (tuple):
+        - **x_state** (ndarray(n_state)): Simulated state.
+        - **llt_state** (ndarray(n_state, n_state)): Temporary matrix to store cholesky factorization.
+        
     """
     cdef char* trans = 'N'
     cdef char* uplo = 'L'

@@ -253,7 +253,9 @@ cpdef void solveV(double[::1, :] U,
         B (ndarray(N, M)): Second matrix.
         
     Returns:
-        (ndarray(N, M)): X in :math:`VX = B`.
+        (tuple):
+        - **U** (ndarray(N, M)): Temp matrix.
+        - **X** (ndarray(N, M)): X in :math:`VX = B`.
 
     """
     # get dimensions
