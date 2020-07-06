@@ -3,10 +3,9 @@ import numpy as np
 import warnings
 
 #from kalmantv.cython import KalmanTV
-from kalmantv.kalmantv_blas import KalmanTV, state_sim
+from kalmantv import *
 from kalmantv.blas_opt import *
 from KalmanTV import KalmanTV as KTV_py
-from kalmantv.mv_gss import *
 from pykalman import standard as pks
 
 # helper functions

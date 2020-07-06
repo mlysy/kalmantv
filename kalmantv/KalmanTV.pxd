@@ -1,65 +1,85 @@
-cdef extern from "KalmanTV.h" namespace "KalmanTV":
-    cdef cppclass KalmanTV:
-        KalmanTV(int, int) except +
-        void predict(double * mu_state_pred,
-                     double * var_state_pred,
-                     const double * mu_state_past,
-                     const double * var_state_past,
-                     const double * mu_state,
-                     const double * wgt_state,
-                     const double * var_state)
-        void update(double * mu_state_filt,
-                    double * var_state_filt,
-                    const double * mu_state_pred,
-                    const double * var_state_pred,
-                    const double * x_meas,
-                    const double * mu_meas,
-                    const double * wgt_meas,
-                    const double * var_meas)
-        void filter(double* mu_state_pred,
-                    double* var_state_pred,
-                    double* mu_state_filt,
-    		    double* var_state_filt,
-    		    const double* mu_state_past,
-    		    const double* var_state_past,
-                    const double* mu_state,
-		    const double* wgt_state,
-		    const double* var_state,
-    		    const double* x_meas,
-                    const double* mu_meas,
-                    const double* wgt_meas,
-                    const double* var_meas)
-        void smooth_mv(double* mu_state_smooth,
-                       double* var_state_smooth,
-                       const double* mu_state_next,
-                       const double* var_state_next,
-                       const double* mu_state_filt,
-                       const double* var_state_filt,
-                       const double* mu_state_pred,
-                       const double* var_state_pred,
-                       const double* wgt_state) 
-        void smooth_sim(double* x_state_smooth,
-                        const double* x_state_next,
-                        const double* mu_state_filt,
-                        const double* var_state_filt,
-                        const double* mu_state_pred,
-                        const double* var_state_pred,
-                        const double* wgt_state,
-                        const double* z_state)
-        void smooth(double* x_state_smooth,
-                    double* mu_state_smooth,
-                    double* var_state_smooth,
-                    const double* x_state_next,
-                    const double* mu_state_next,
-                    const double* var_state_next,
-                    const double* mu_state_filt,
-                    const double* var_state_filt,
-                    const double* mu_state_pred,
-                    const double* var_state_pred,
-                    const double* wgt_state,
-                    const double* z_state)
-        void state_sim(double* x_state,
-                       const double* mu_state,
-                       const double* var_state,
-                       const double* z_state)
+cpdef void state_sim(double[::1] x_state,
+                     double[::1, :] llt_state,
+                     const double[::1] mu_state,
+                     const double[::1, :] var_state,
+                     const double[::1] z_state)
+
+cdef class KalmanTV:
+    cdef int n_state, n_meas
+    cdef double[::1] tmu_state
+    cdef double[::1] tmu_state2
+    cdef double[::1, :] tvar_state
+    cdef double[::1, :] tvar_state2
+    cdef double[::1, :] tvar_state3
+    cdef double[::1] tmu_meas
+    cdef double[::1, :] tvar_meas
+    cdef double[::1, :] twgt_meas
+    cdef double[::1, :] twgt_meas2
+    cdef double[::1, :] llt_meas
+    cdef double[::1, :] llt_state
+
+    cpdef void predict(self,
+                       double[::1] mu_state_pred,
+                       double[::1, :] var_state_pred,
+                       const double[::1] mu_state_past,
+                       const double[::1, :] var_state_past,
+                       const double[::1] mu_state,
+                       const double[::1, :] wgt_state,
+                       const double[::1, :] var_state)
+    cpdef void update(self,
+                      double[::1] mu_state_filt,
+                      double[::1, :] var_state_filt,
+                      const double[::1] mu_state_pred,
+                      const double[::1, :] var_state_pred,
+                      const double[::1] x_meas,
+                      const double[::1] mu_meas,
+                      const double[::1, :] wgt_meas,
+                      const double[::1, :] var_meas)
+    cpdef void filter(self,
+                      double[::1] mu_state_pred,
+                      double[::1, :] var_state_pred,
+                      double[::1] mu_state_filt,
+                      double[::1, :] var_state_filt,
+                      const double[::1] mu_state_past,
+                      const double[::1, :] var_state_past,
+                      const double[::1] mu_state,
+                      const double[::1, :] wgt_state,
+                      const double[::1, :] var_state,
+                      const double[::1] x_meas,
+                      const double[::1] mu_meas,
+                      const double[::1, :] wgt_meas,
+                      const double[::1, :] var_meas)
+    cpdef void smooth_mv(self,
+                         double[::1] mu_state_smooth,
+                         double[::1, :] var_state_smooth,
+                         const double[::1] mu_state_next,
+                         const double[::1, :] var_state_next,
+                         const double[::1] mu_state_filt,
+                         const double[::1, :] var_state_filt,
+                         const double[::1] mu_state_pred,
+                         const double[::1, :] var_state_pred,
+                         const double[::1, :] wgt_state)
+    cpdef void smooth_sim(self,
+                          double[::1] x_state_smooth,
+                          const double[::1] x_state_next,
+                          const double[::1] mu_state_filt,
+                          const double[::1, :] var_state_filt,
+                          const double[::1] mu_state_pred,
+                          const double[::1, :] var_state_pred,
+                          const double[::1, :] wgt_state,
+                          const double[::1] z_state)
+    cpdef void smooth(self,
+                      double[::1] x_state_smooth,
+                      double[::1] mu_state_smooth,
+                      double[::1, :] var_state_smooth,
+                      const double[::1] x_state_next,
+                      const double[::1] mu_state_next,
+                      const double[::1, :] var_state_next,
+                      const double[::1] mu_state_filt,
+                      const double[::1, :] var_state_filt,
+                      const double[::1] mu_state_pred,
+                      const double[::1, :] var_state_pred,
+                      const double[::1, :] wgt_state,
+                      const double[::1] z_state)
+
             

@@ -1,6 +1,6 @@
 KalmanTV Class
 ==============
-.. automodule:: kalmantv.kalmantv_blas
+.. automodule:: kalmantv.KalmanTV
     :members:
 
 BLAS Operations
