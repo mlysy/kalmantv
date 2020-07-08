@@ -1,12 +1,37 @@
-# **kalmantv**: Fast Time-Varying Kalman Filtering and Smoothing
+# kalmantv: Fast Time-Varying Kalman Filtering and Smoothing
+
+*Mohan Wu, Martin Lysy*
+
+---
 
 ## Description
 
-**kalmantv** is a Cython library that implements the Kalman Filering and Smoothing algorithms. 
+**kalmantv** provides a simple interface to the time-varying Kalman filtering and smoothing algorithms.  The backend is written in Cython which gives a considerable performance boost for small and moderate problems compared to a pure Python implementation.  Also provided are calculations for general Gaussian state-space models which don't use the Kalman recursions.  These calculations can be used to test future implementations of the Kalman filter and smoother for more general problems.
 
-### Folder structure
+## Installation
 
-**kalmantv** is Cython code containing the Cython wrappers for usage in Python.
+```bash
+git clone https://github.com/mlysy/kalmantv
+cd kalmantv
+pip install .
+```
+
+## Unit Testing
+
+The unit tests are done against the **pykalman** library to ensure the same results.  From inside the root folder of the **kalmantv** source code:
+```bash
+cd tests
+python -m unittest discover -v
+```
+
+## Documentation
+
+The HTML documentation can be compiled from the **kalmantv** root folder:
+```bash
+cd docs
+make html
+```
+This will create the documentation in `docs/build`.
 
 ## Usage
 
@@ -51,27 +76,6 @@ ktv.filter(mu_state_pred, var_state_pred,
            x_meas, mu_meas, wgt_meas, var_meas)
 ```
 
-## Installation
-
-```bash
-git clone https://github.com/mlysy/kalmantv
-cd kalmantv
-pip install .
-```
-
-**Experimental:** Alternatively, you can install the package in "development" mode with `pip install -e .`.  This means that whenever you make changes to the package they are automatically reflected in the "installed" version.  However, I'm not sure this works for compiled code e.g., Cython, in which case it's safest to rerun `pip install .` every time you make a change.
-
-## Unit Testing
-
-The unit tests are done against the **pykalman** library to ensure the same results.
-```bash
-cd kalmantv
-cd tests
-python -m unittest discover -v
-```
-
 ## TODO
 
-- [X] Replace test functions in `tests/test_kalmantv.py` with `kalmantv` class from **probDE**.  This is basically just copying `kalmantv.py` to `tests` folder, and adding `import kalmantv` at the top of `test_kalmantv.py`.
-
-- [X] Test Cython interface (i.e., using `cimport`, but don't need to worry about this for now). 
+- [ ] Naming conventions: Plural of argument names, maybe something more memorable than `gss`?
