@@ -5,8 +5,8 @@ import warnings
 #from kalmantv.cython import KalmanTV
 from kalmantv import *
 from kalmantv.blas_opt import *
-from KalmanTV import KalmanTV as KTV_py
-from pykalman import standard as pks
+from kalmantv_py import KalmanTV as KTV_py # our own Python implementation
+from pykalman import standard as pks # pykalman's Python implementation
 
 # helper functions
 
