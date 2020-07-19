@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-from .blas_opt cimport *
+from .blas cimport *
 
 DTYPE = np.double
 

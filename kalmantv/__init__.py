@@ -1,2 +1,2 @@
-from .mv_gss import *
+from .mv_gaussian import *
 from .kalmantv import *

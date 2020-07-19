@@ -20,8 +20,8 @@ cpp_modules = ['kalmantv']
 # cpp modules
 ext_c = '.pyx' if USE_CYTHON else '.c'
 ext_cpp = '.pyx' if USE_CYTHON else 'cpp'
-ext_modules = [Extension("kalmantv.blas_opt",
-                         ["kalmantv/blas_opt"+ext_c],
+ext_modules = [Extension("kalmantv.blas",
+                         ["kalmantv/blas"+ext_c],
                          include_dirs=[
                              np.get_include(),
                              sp.get_include()],

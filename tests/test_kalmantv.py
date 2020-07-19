@@ -4,7 +4,7 @@ import warnings
 
 #from kalmantv.cython import KalmanTV
 from kalmantv import *
-from kalmantv.blas_opt import *
+from kalmantv.blas import *
 from kalmantv_py import KalmanTV as KTV_py # our own Python implementation
 from pykalman import standard as pks # pykalman's Python implementation
 
@@ -407,7 +407,7 @@ class KalmanTVTest(unittest.TestCase):
         self.assertAlmostEqual(rel_err(mu_state_smooth, mu_state_smooth2), 0.0)
         self.assertAlmostEqual(rel_err(var_state_smooth, var_state_smooth2), 0.0)
 
-    def test_mvgss(self):
+    def test_mvgaussian(self):
         # gss parameters
         # random values for necessary parameters
         N = 3
@@ -422,20 +422,20 @@ class KalmanTVTest(unittest.TestCase):
         var_meas = rand_mat(n_meas)
 
         # get cholesky of variance matrices
-        chol_state = np.linalg.cholesky(var_state)
-        chol_meas = np.linalg.cholesky(var_meas)
+        #chol_state = np.linalg.cholesky(var_state)
+        #chol_meas = np.linalg.cholesky(var_meas)
 
         # stack them since they are the same at each time point
         mu_states = np.stack([mu_state]*(N+1), axis=-1)
         wgt_states = np.stack([wgt_state]*(N+1), axis=-1)
-        chol_states = np.stack([chol_state]*(N+1), axis=-1)
+        var_states = np.stack([var_state]*(N+1), axis=-1)
         mu_meass = np.stack([mu_meas]*(N+1), axis=-1)
         wgt_meass = np.stack([wgt_meas]*(N+1), axis=-1)
-        chol_meass = np.stack([chol_meas]*(N+1), axis=-1)
+        var_meass = np.stack([var_meas]*(N+1), axis=-1)
 
         # get gss parameters
-        wgt_gsss, mu_gsss, chol_gsss = ss2gss(wgt_states, mu_states, chol_states, wgt_meass, mu_meass, chol_meass)
-        gss_mean, gss_var = mv_gss(wgt_gsss, mu_gsss, chol_gsss)
+        wgt_gsss, mu_gsss, chol_gsss = ss2gss(wgt_states, mu_states, var_states, wgt_meass, mu_meass, var_meass)
+        gss_mean, gss_var = mv_gaussian(wgt_gsss, mu_gsss, chol_gsss)
 
         # Kalman parameters
         mu_state_filts = np.zeros((n_state, N+1), order='F')

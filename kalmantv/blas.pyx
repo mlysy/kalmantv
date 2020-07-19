@@ -1,12 +1,9 @@
-
+# cython: boundscheck=False, wraparound=False, nonecheck=False, initializedcheck=False
 import numpy as np
 cimport numpy as np
 cimport cython
 cimport scipy.linalg.cython_blas as blas
 from scipy.linalg.cython_lapack cimport dpotrf, dpotrs, dlacpy
-
-DTYPE = np.double
-ctypedef np.double_t DTYPE_t
 
 cpdef void vec_copy(double[::1] y,
                     const double[::1] x):
@@ -62,10 +59,6 @@ cpdef void vec_add(double[::1] y,
     blas.daxpy(& N, & alpha, & x[0], & incx, & y[0], & incy)
     return
 
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.nonecheck(False)
 cpdef void mat_add(double[::1, :] B,
                    const double alpha,
                    const double beta,
