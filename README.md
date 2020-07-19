@@ -78,4 +78,4 @@ ktv.filter(mu_state_pred, var_state_pred,
 
 ## TODO
 
-- [ ] Naming conventions: Plural of argument names, maybe something more memorable than `gss`?
+- [x] Naming conventions: Plural of argument names, maybe something more memorable than `gss`?
