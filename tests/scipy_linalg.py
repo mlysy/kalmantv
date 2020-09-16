@@ -17,7 +17,9 @@ import ctypes
 # import numpy as np
 # from scipy.linalg.cython_lapack cimport dpotrf, dpotrs
 
-# create the ctype functions
+# --- wrappers to BLAS/LAPACK functions ----------------------------------------
+
+# necessary ctypes
 _PTR = ctypes.POINTER
 _float = ctypes.c_float
 _double = ctypes.c_double
@@ -26,57 +28,115 @@ _float_p = _PTR(_float)
 _double_p = _PTR(_double)
 _int_p = _PTR(_int)
 
-# --- njittable wrappers to cho_factor and cho_solve ---------------------------
-#
-# LAPACK: xpotrf and xpotrs, x=d/s
-
-# cho_factor: double
+# dpotrf (cho_factor for doubles)
 addr = get_cython_function_address('scipy.linalg.cython_lapack', 'dpotrf')
 functype = ctypes.CFUNCTYPE(None,
-                            _int_p,  # uplo
-                            _int_p,  # n
+                            _int_p,  # UPLO
+                            _int_p,  # N
                             _double_p,  # U
-                            _int_p,  # lda
-                            _int_p,  # info
+                            _int_p,  # LDA
+                            _int_p,  # INFO
                             )
 _dpotrf = functype(addr)
 # cho_factor: float
 addr = get_cython_function_address('scipy.linalg.cython_lapack', 'spotrf')
 functype = ctypes.CFUNCTYPE(None,
-                            _int_p,  # uplo
-                            _int_p,  # n
+                            _int_p,  # UPLO
+                            _int_p,  # N
                             _float_p,  # U
-                            _int_p,  # lda
-                            _int_p,  # info
+                            _int_p,  # LDA
+                            _int_p,  # INFO
                             )
 _spotrf = functype(addr)
 
 # cho_solve: double
 addr = get_cython_function_address('scipy.linalg.cython_lapack', 'dpotrs')
 functype = ctypes.CFUNCTYPE(None,
-                            _int_p,  # uplo
-                            _int_p,  # n
-                            _int_p,  # nrhs
+                            _int_p,  # UPLO
+                            _int_p,  # N
+                            _int_p,  # NRHS
                             _double_p,  # U
-                            _int_p,  # lda
+                            _int_p,  # LDA
                             _double_p,  # X
-                            _int_p,  # ldb
-                            _int_p,  # info
+                            _int_p,  # LDB
+                            _int_p,  # INFO
                             )
 _dpotrs = functype(addr)
 # cho_solve: float
 addr = get_cython_function_address('scipy.linalg.cython_lapack', 'spotrs')
 functype = ctypes.CFUNCTYPE(None,
-                            _int_p,  # uplo
-                            _int_p,  # n
-                            _int_p,  # nrhs
+                            _int_p,  # UPLO
+                            _int_p,  # N
+                            _int_p,  # NRHS
                             _float_p,  # U
-                            _int_p,  # lda
+                            _int_p,  # LDA
                             _float_p,  # X
-                            _int_p,  # ldb
-                            _int_p,  # info
+                            _int_p,  # LDB
+                            _int_p,  # INFO
                             )
 _spotrs = functype(addr)
+
+# triangular matrix multiplication
+# matrix-vector: double
+addr = get_cython_function_address('scipy.linalg.cython_blas', 'dtrmv')
+functype = ctypes.CFUNCTYPE(None,
+                            _int_p,  # UPLO
+                            _int_p,  # TRANS
+                            _int_p,  # DIAG
+                            _int_p,  # N
+                            _double_p,  # A
+                            _int_p,  # LDA
+                            _double_p,  # X
+                            _int_p,  # INCX
+                            )
+_dtrmv = functype(addr)
+# matrix-vector: float
+addr = get_cython_function_address('scipy.linalg.cython_blas', 'strmv')
+functype = ctypes.CFUNCTYPE(None,
+                            _int_p,  # UPLO
+                            _int_p,  # TRANS
+                            _int_p,  # DIAG
+                            _int_p,  # N
+                            _float_p,  # A
+                            _int_p,  # LDA
+                            _float_p,  # X
+                            _int_p,  # INCX
+                            )
+_strmv = functype(addr)
+# matrix-array: double
+addr = get_cython_function_address('scipy.linalg.cython_blas', 'dtrmm')
+functype = ctypes.CFUNCTYPE(None,
+                            _int_p,  # SIDE
+                            _int_p,  # UPLO
+                            _int_p,  # TRANSA
+                            _int_p,  # DIAG
+                            _int_p,  # M
+                            _int_p,  # N
+                            _double_p,  # ALPHA
+                            _double_p,  # A
+                            _int_p,  # LDA
+                            _double_p,  # B
+                            _int_p,  # LDB
+                            )
+_dtrmm = functype(addr)
+# matrix-array: float
+addr = get_cython_function_address('scipy.linalg.cython_blas', 'strmm')
+functype = ctypes.CFUNCTYPE(None,
+                            _int_p,  # SIDE
+                            _int_p,  # UPLO
+                            _int_p,  # TRANSA
+                            _int_p,  # DIAG
+                            _int_p,  # M
+                            _int_p,  # N
+                            _float_p,  # ALPHA
+                            _float_p,  # A
+                            _int_p,  # LDA
+                            _float_p,  # B
+                            _int_p,  # LDB
+                            )
+_strmm = functype(addr)
+
+# --- helper functions ---------------------------------------------------------
 
 
 @register_jitable
@@ -92,19 +152,25 @@ def _check_finite_array(a):
 
 
 @register_jitable
-def _asfortranarray(a, overwrite_a=True):
+def _asfortranarray(a, overwrite_a=False):
     """
     Convert an array to fortran order, creating a copy if necessary and/or requested.
     That is, the function returns a reference to `a` if (1) `a` is in fortran order and (2) `overwrite_a = True`.  Otherwise, returns a reference to a copy of `a`, but in fortran-order.
 
     Note: `overwrite_a = False` seems to set `a1.flags.owndata = False` in njit but `True` in regular Python.
     """
-    # # this should be a no-copy if array is already in fortran order
-    a1 = np.asfortranarray(a)  # copy unless a is f_contiguous
+    if not a.flags.f_contiguous:
+        # copy unless a is f_contiguous
+        a1 = np.asfortranarray(a)
+    else:
+        # np.asfortranarray creates a copy when c_contiguous is True
+        a1 = a
     if (not overwrite_a) and a.flags.f_contiguous:
         # copy if a is f_contiguous and overwrite required
         a1 = np.copy(a)
     return a1
+
+# --- njitable cho_factor -------------------------------------------------------
 
 
 @overload(scipy.linalg.cho_factor)
@@ -121,10 +187,10 @@ def jit_cho_factor(a, lower=False, overwrite_a=False, check_finite=True):
     # Reject ndarrays with non floating-point dtype
     if not isinstance(a.dtype, types.Float):
         raise TypingError("Input array must be of type float.")
-    # # Dimension check
-    # if a.ndim != 2:
-    #     raise ValueError('Input array needs to be 2D but received '
-    #                      'a {}d-array.'.format(a.ndim))
+    # Dimension check
+    if a.ndim != 2:
+        raise TypingError(
+            "scipy.linalg.cho_factor() only supported on 2-D arrays.")
     # # Squareness check
     # if a.shape[0] != a.shape[1]:
     #     raise ValueError('Input array is expected to be square but has '
@@ -139,7 +205,7 @@ def jit_cho_factor(a, lower=False, overwrite_a=False, check_finite=True):
 
     def cho_factor_imp(a, lower=False, overwrite_a=False, check_finite=True):
         # Reject ndarrays with unsupported dimensionality
-        if (a.ndim != 2) or (a.shape[0] != a.shape[1]):
+        if a.shape[0] != a.shape[1]:
             raise LinAlgError('Input array needs to be a square matrix.')
         # Quick return for square empty array
         if a.size == 0:
@@ -178,6 +244,8 @@ def jit_cho_factor(a, lower=False, overwrite_a=False, check_finite=True):
 
     return cho_factor_imp
 
+# --- njitable cho_solve -------------------------------------------------------
+
 
 @overload(scipy.linalg.cho_solve)
 def jit_cho_solve(c_and_lower, b, overwrite_b=False, check_finite=True):
@@ -191,6 +259,10 @@ def jit_cho_solve(c_and_lower, b, overwrite_b=False, check_finite=True):
     # Reject ndarrays with non floating-point dtype
     if not isinstance(c.dtype, types.Float) or not isinstance(b.dtype, types.Float):
         raise TypingError("c and b must be of type float.")
+    # Dimension check
+    if (c.ndim != 2) or (b.ndim > 2) or (b.ndim < 1):
+        raise TypingError(
+            "scipy.linalg.cho_solve() only supported on 1-D or 2-D arrays.")
 
     # transpose constants
     UP = np.array([ord('U')], dtype=np.int32)
@@ -206,7 +278,7 @@ def jit_cho_solve(c_and_lower, b, overwrite_b=False, check_finite=True):
     def cho_solve_imp(c_and_lower, b, overwrite_b=False, check_finite=True):
         (c, lower) = c_and_lower
         # Squareness check
-        if (c.ndim != 2) or (c.shape[0] != c.shape[1]):
+        if (c.shape[0] != c.shape[1]):
             raise LinAlgError("The factored matrix c is not square.")
         # Dimension check
         if c.shape[1] != b.shape[0]:
@@ -215,25 +287,32 @@ def jit_cho_solve(c_and_lower, b, overwrite_b=False, check_finite=True):
         if check_finite:
             _check_finite_array(c)
             _check_finite_array(b)
-        # c is assumed to be returned by cho_factor,
-        # so no further checks are made.
-        # but b needs to be fortran-ordered and/or copied.
-        b1 = _asfortranarray(b, overwrite_b)
         if to_float64:
             # need to upcast these. if already float64 should be a no-copy.
-            c = np.asarray(c, dtype=np.float64)
-            b1 = np.asarray(b1, dtype=np.float64)
+            # otherwise, copies to C order, so do this before as_fortranarray
+            c1 = np.asarray(c, dtype=np.float64)
+            b1 = np.asarray(b, dtype=np.float64)
+        else:
+            c1 = c
+            b1 = b
+        # convert to fortran order, avoiding copy whenever possible.
+        # c is assumed to come from cho_factor, so already in fortran order.
+        # if it was already float64, _asfortranarray does nothing
+        # if it needed to be changed to float64, a copy was already made,
+        # so _asfortranarray is not overwriting the original c.
+        c1 = _asfortranarray(c1, overwrite_a=True)
+        b1 = _asfortranarray(b1, overwrite_b)
         # determine order
         uplo = LO if lower else UP
         # wrap everything into something with ctypes
         n = np.array(c.shape[0], dtype=np.int32)
-        # nrhs = np.array(b[0].size, dtype=np.int32)
+        # nrhs = np.array(b.shape[1], dtype=np.int32)
         nrhs = np.array(b.size/b.shape[0], dtype=np.int32)
         lda = n
         ldb = n
         info = np.empty(1, dtype=np.int32)
         # call fortran via cython_lapack
-        _potrs(uplo.ctypes, n.ctypes, nrhs.ctypes, c.ctypes, lda.ctypes,
+        _potrs(uplo.ctypes, n.ctypes, nrhs.ctypes, c1.ctypes, lda.ctypes,
                b1.ctypes, ldb.ctypes, info.ctypes)
         # check return
         if info[0] != 0:
@@ -243,3 +322,123 @@ def jit_cho_solve(c_and_lower, b, overwrite_b=False, check_finite=True):
         return b1
 
     return cho_solve_imp
+
+# --- njitable triangular matrix multiplication (tri_mult) ---------------------
+
+
+def tri_mult(a_and_lower, x, overwrite_x=False, check_finite=True):
+    r"""
+    Triangular matrix multiplication :math:`a x`.
+    """
+    raise NotImplementedError
+
+
+@overload(tri_mult)
+def jit_tri_mult(a_and_lower, x, overwrite_x=False, check_finite=True):
+    (a, lower) = a_and_lower
+    # Reject non-ndarray types
+    if not isinstance(a, types.Array) or not isinstance(x, types.Array):
+        raise TypingError("a and x must be a NumPy arrays.")
+    # Reject ndarrays with non floating-point dtype
+    if not isinstance(a.dtype, types.Float) or not isinstance(x.dtype, types.Float):
+        raise TypingError("a and x must be of type float.")
+
+    # type to use
+    use_float64 = (a.dtype == types.float64) or (x.dtype == types.float64)
+    # whether to promote to float64
+    to_float64 = a.dtype != x.dtype
+    # print("use_float64 = ", use_float64)
+    # print("to_float64 = ", to_float64)
+
+    # BLAS constants
+    UP = np.array([ord('U')], dtype=np.int32)
+    LO = np.array([ord('L')], dtype=np.int32)
+    trans = np.array([ord('N')], dtype=np.int32)
+    diag = np.array([ord('N')], dtype=np.int32)
+    incx = np.array([1], dtype=np.int32)
+    side = np.array([ord('L')], dtype=np.int32)
+    alpha = np.array(1.0, dtype=np.float64 if use_float64 else np.float32)
+
+    # Which BLAS function to use
+    if x.ndim == 1:
+        _trmv = _dtrmv if use_float64 else _strmv
+    else:
+        _trmm = _dtrmm if use_float64 else _strmm
+
+    # implementation for matrix-vector multiplication
+    def tri_mult_imp_1D(a_and_lower, x, overwrite_x=False, check_finite=True):
+        (a, lower) = a_and_lower
+        # Squareness check
+        if (a.ndim != 2) or (a.shape[0] != a.shape[1]):
+            raise LinAlgError("The triangular matrix a is not square.")
+        # Dimension check
+        if a.shape[1] != x.shape[0]:
+            raise LinAlgError("a and x have incompatible dimensions.")
+        # Check that arrays are finite
+        if check_finite:
+            _check_finite_array(a)
+            _check_finite_array(x)
+        # float and fortran conversions
+        if to_float64:
+            # need to upcast these. if already float64 should be a no-copy.
+            # otherwise, copies to C order, so do this before as_fortranarray
+            a1 = np.asarray(a, dtype=np.float64)
+            x1 = np.asarray(x, dtype=np.float64)
+        else:
+            a1 = a
+            x1 = x
+        # convert to fortran order, avoiding copy whenever possible.
+        a1 = _asfortranarray(a1, overwrite_a=True)
+        x1 = _asfortranarray(x1, overwrite_x)
+        # determine order
+        uplo = LO if lower else UP
+        # wrap everything into something with ctypes
+        n = np.array(a.shape[0], dtype=np.int32)
+        lda = n
+        # call fortran via cython_blas
+        _trmv(uplo.ctypes, trans.ctypes, diag.ctypes, n.ctypes,
+              a1.ctypes, lda.ctypes, x1.ctypes, incx.ctypes)
+        return x1
+
+    # implementation for matrix-(array >1D) multiplication
+    def tri_mult_imp_ND(a_and_lower, x, overwrite_x=False, check_finite=True):
+        (a, lower) = a_and_lower
+        # Squareness check
+        if (a.ndim != 2) or (a.shape[0] != a.shape[1]):
+            raise LinAlgError("The triangular matrix a is not square.")
+        # Dimension check
+        if a.shape[1] != x.shape[0]:
+            raise LinAlgError("a and x have incompatible dimensions.")
+        # Check that arrays are finite
+        if check_finite:
+            _check_finite_array(a)
+            _check_finite_array(x)
+        # float and fortran conversions
+        if to_float64:
+            # need to upcast these. if already float64 should be a no-copy.
+            # otherwise, copies to C order, so do this before as_fortranarray
+            a1 = np.asarray(a, dtype=np.float64)
+            x1 = np.asarray(x, dtype=np.float64)
+        else:
+            a1 = a
+            x1 = x
+        # convert to fortran order, avoiding copy whenever possible.
+        a1 = _asfortranarray(a1, overwrite_a=True)
+        x1 = _asfortranarray(x1, overwrite_x)
+        # determine order
+        uplo = LO if lower else UP
+        # wrap everything into something with ctypes
+        m = np.array(a.shape[0], dtype=np.int32)
+        n = np.array(x.size/x.shape[0], dtype=np.int32)
+        lda = m
+        ldb = m
+        # call fortran via cython_blas
+        _trmm(side.ctypes, uplo.ctypes, trans.ctypes, diag.ctypes,
+              m.ctypes, n.ctypes, alpha.ctypes,
+              a1.ctypes, lda.ctypes, x1.ctypes, ldb.ctypes)
+        return x1
+
+    if x.ndim == 1:
+        return tri_mult_imp_1D
+    else:
+        return tri_mult_imp_ND
