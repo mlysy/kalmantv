@@ -82,18 +82,15 @@ def tri_mult_sp(a_and_lower, x):
 #     return np.linalg.cholesky(a)
 
 # --- test class ---------------------------------------------------------------
-
-    # cases = {"order_a": ["F", "C"],
-    #          "type_a": [np.float32, np.float64],
-    #          "contiguous_a": [False, True],
-    #          "overwrite_a": [False, True],
-    #          "check_finite": [False, True]}
-
-    # df = expand_grid(cases)
-
-    # print(df)
-    # print(df.iloc[2])
-    # print(df.iloc[2]["order_a"])
+# cases = {"order_a": ["F", "C"],
+#          "type_a": [np.float32, np.float64],
+#          "contiguous_a": [False, True],
+#          "overwrite_a": [False, True],
+#          "check_finite": [False, True]}
+# df = expand_grid(cases)
+# print(df)
+# print(df.iloc[2])
+# print(df.iloc[2]["order_a"])
 
 
 class TestNumbaSciPy(unittest.TestCase):
