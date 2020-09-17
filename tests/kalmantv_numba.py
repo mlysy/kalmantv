@@ -124,6 +124,10 @@ class KalmanTV(object):
     calculates :math:`\theta = (\mu, \Sigma)` for :math:`X_n` and the notation for
     the state at time n given observations from k is given by :math:`\theta_{n|K}`.
 
+    Notes:
+      - For best performance, all input arrrays should have contiguous memory in fortran-order.
+      - Avoids memory allocation whenever possible.  One place this does not happen is in calculations of `A += B C`.  This is done with `A += np.dot(B, C)`, which involves malloc before the addition.
+
     Args:
         n_state (int): Number of state variables.
         n_meas (int): Number of measurement variables.
@@ -189,22 +193,12 @@ class KalmanTV(object):
         r"""
         Perform one prediction step of the Kalman filter.
         Calculates :math:`\theta_{n|n-1}` from :math:`\theta_{n-1|n-1}`.
+
+        Note: `mu_state_pred` and `mu_state_past` cannot refer to the same location in memory.  Same for `var_state_pred` and `var_state_past`.
         """
-        # cdef char * wgt_trans = 'N'
-        # cdef char * var_trans = 'N'
-        # cdef char * wgt_trans2 = 'T'
-        # cdef int mu_alpha = 1, mu_beta = 1, var_alpha = 1, var_beta = 1
-        # vec_copy(mu_state_pred, mu_state)
         mu_state_pred[:] = mu_state
-        # mat_vec_mult(mu_state_pred, wgt_trans, mu_alpha,
-        #              mu_beta, wgt_state, mu_state_past)
         mu_state_pred += np.dot(wgt_state, mu_state_past)
-        # mat_copy(var_state_pred, var_state)
         var_state_pred[:] = var_state
-        # mat_triple_mult(var_state_pred, self.tvar_state, wgt_trans, var_trans, wgt_trans2,
-        #                 var_alpha, var_beta, wgt_state, var_state_past, wgt_state)
-        # self.tvar_state[:] = np.dot(wgt_state, var_state_past)
-        # var_state_pred += np.dot(self.tvar_state, wgt_state.T)
         _quad_form(var_state_pred, wgt_state, var_state_past, self.tvar_state)
 
         return
@@ -221,38 +215,18 @@ class KalmanTV(object):
         r"""
         Perform one update step of the Kalman filter.
         Calculates :math:`\theta_{n|n}` from :math:`\theta_{n|n-1}`.
+
+        Note: `mu_state_filt` and `mu_state_pred` can refer to the same location in memory.  Same for `var_state_filt` and `var_state_pred`.
         """
-        # cdef char * wgt_trans = 'N'
-        # cdef char * wgt_trans2 = 'T'
-        # cdef char * var_trans = 'N'
-        # cdef int tmu_alpha = -1, tmu_beta = -1, tvar_alpha = 1, tvar_beta = 1
-        # cdef int tmu_alpha2 = 1
-        # cdef int mu_alpha = 1, mu_beta = 1, var_alpha = -1, var_beta = 1
-        # vec_copy(self.tmu_meas, mu_meas)
         self.tmu_meas[:] = -mu_meas
-        # mat_vec_mult(self.tmu_meas, wgt_trans, tmu_alpha,
-        #              tmu_beta, wgt_meas, mu_state_pred)
         self.tmu_meas -= np.dot(wgt_meas, mu_state_pred)
-        # mat_copy(self.tvar_meas, var_meas)
         self.tvar_meas[:] = var_meas
-        # mat_triple_mult(self.tvar_meas, self.twgt_meas, wgt_trans, var_trans, wgt_trans2,
-        #                 tvar_alpha, tvar_beta, wgt_meas, var_state_pred, wgt_meas)
-        # self.twgt_meas[:] = np.dot(wgt_meas, var_state_pred)
-        # self.tvar_meas += np.dot(twgt_meas, wgt_meas.T)
         _quad_form(self.tvar_meas, wgt_meas, var_state_pred, self.twgt_meas)
-        # solveV(self.llt_meas, self.twgt_meas2, self.tvar_meas, self.twgt_meas)
         _solveV(self.twgt_meas2, self.tvar_meas, self.twgt_meas, self.llt_meas)
-        # vec_add(self.tmu_meas, tmu_alpha2, x_meas)
         self.tmu_meas += x_meas
-        # vec_copy(mu_state_filt, mu_state_pred)
         mu_state_filt[:] = mu_state_pred
-        # mat_vec_mult(mu_state_filt, wgt_trans2, mu_alpha,
-        #              mu_beta, self.twgt_meas2, self.tmu_meas)
         mu_state_filt += np.dot(self.twgt_meas2.T, self.tmu_meas)
-        # mat_copy(var_state_filt, var_state_pred)
         var_state_filt[:] = var_state_pred
-        # mat_mult(var_state_filt, wgt_trans2, wgt_trans, var_alpha, var_beta,
-        #          self.twgt_meas2, self.twgt_meas)
         var_state_filt -= np.dot(self.twgt_meas2.T, self.twgt_meas)
         return
 
@@ -295,42 +269,20 @@ class KalmanTV(object):
         r"""
         Perform one step of the Kalman mean/variance smoother.
         Calculates :math:`\theta_{n|N}` from :math:`\theta_{n+1|N}`, :math:`\theta_{n|n}`, and :math:`\theta_{n+1|n}`.
+
+        Note: `mu_state_smooth` and `mu_state_next` can refer to the same location in memory.  Same for `var_state_smooth` and `var_state_next`.
         """
-        # cdef char * wgt_trans = 'N'
-        # cdef char * var_trans = 'T'
-        # cdef char * var_trans2 = 'N'
-        # cdef int tvar_alpha = 1, tvar_beta = 0, tmu_alpha = -1, tvar_alpha2 = -1, tvar_beta2 = 1
-        # cdef int mu_alpha = 1, mu_beta = 1, var_alpha = 1, var_beta = 1
-        # mat_mult(self.tvar_state, wgt_trans, var_trans, tvar_alpha, tvar_beta, wgt_state,
-        #          var_state_filt)
         self.tvar_state[:] = np.dot(wgt_state, var_state_filt.T)
-        # solveV(self.llt_state, self.tvar_state,
-        #        var_state_pred, self.tvar_state)
         _solveV(self.tvar_state, var_state_pred,
                 self.tvar_state, self.llt_state)
-        # vec_copy(self.tmu_state, mu_state_next)
-        # vec_add(self.tmu_state, tmu_alpha, mu_state_pred)
         self.tmu_state[:] = mu_state_next - mu_state_pred
-        # mat_copy(self.tvar_state2, var_state_next)
-        # mat_add(self.tvar_state2, tvar_alpha2, tvar_beta2, var_state_pred)
         self.tvar_state2[:] = var_state_next - var_state_pred
-        # mat_mult(self.tvar_state3, var_trans, var_trans2, tvar_alpha, tvar_beta, self.tvar_state,
-        #          self.tvar_state2)
         self.tvar_state3[:] = np.dot(self.tvar_state.T, self.tvar_state2)
-        # vec_copy(mu_state_smooth, mu_state_filt)
         mu_state_smooth[:] = mu_state_filt
-        # mat_vec_mult(mu_state_smooth, var_trans, mu_alpha,
-        #              mu_beta, self.tvar_state, self.tmu_state)
         mu_state_smooth += np.dot(self.tvar_state.T, self.tmu_state)
-        # mat_copy(var_state_smooth, var_state_filt)
         var_state_smooth[:] = var_state_filt
-        # mat_mult(var_state_smooth, var_trans2, var_trans2, var_alpha, var_beta, self.tvar_state3,
-        #          self.tvar_state)
         var_state_smooth += np.dot(self.tvar_state3, self.tvar_state)
         return
-        # tvar_state = np.copy(self.tvar_state)
-        # tvar_state3 = np.copy(self.tvar_state3)
-        # return tvar_state, tvar_state3
 
     def smooth_sim(self,
                    x_state_smooth,
@@ -344,34 +296,17 @@ class KalmanTV(object):
         r"""
         Perform one step of the Kalman sampling smoother.
         Calculates a draw :math:`x_{n|N}` from :math:`x_{n+1|N}`, :math:`\theta_{n|n}`, and :math:`\theta_{n+1|n}`.
+
+        Note: `x_state_smooth` and `x_state_next` can refer to the same location in memory.
         """
-        # cdef char * wgt_trans = 'N'
-        # cdef char * var_trans = 'T'
-        # cdef char * var_trans2 = 'N'
-        # cdef int tvar_alpha = 1, tvar_beta = 0, tmu_alpha = -1
-        # cdef int tmu_alpha2 = 1, tmu_beta2 = 1, tvar_alpha2 = -1, tvar_beta2 = 1
-        # mat_mult(self.tvar_state, wgt_trans, var_trans, tvar_alpha, tvar_beta, wgt_state,
-        #          var_state_filt)
         self.tvar_state[:] = np.dot(wgt_state, var_state_filt.T)
-        # solveV(self.llt_state, self.tvar_state2,
-        #        var_state_pred, self.tvar_state)
         _solveV(self.tvar_state2, var_state_pred,
                 self.tvar_state, self.llt_state)
-        # vec_copy(self.tmu_state, x_state_next)
-        # vec_add(self.tmu_state, tmu_alpha, mu_state_pred)
         self.tmu_state[:] = x_state_next - mu_state_pred
-        # vec_copy(self.tmu_state2, mu_state_filt)
-        # mat_vec_mult(self.tmu_state2, var_trans, tmu_alpha2,
-        #              tmu_beta2, self.tvar_state2, self.tmu_state)
         self.tmu_state2[:] = mu_state_filt
         self.tmu_state2 += np.dot(self.tvar_state2.T, self.tmu_state)
-        # mat_copy(self.tvar_state3, var_state_filt)
-        # mat_mult(self.tvar_state3, var_trans, var_trans2, tvar_alpha2, tvar_beta2, self.tvar_state2,
-        #          self.tvar_state)
         self.tvar_state3[:] = var_state_filt
         self.tvar_state3 -= np.dot(self.tvar_state2.T, self.tvar_state)
-        # state_sim(x_state_smooth, self.llt_state, self.tmu_state2,
-        #           self.tvar_state3, z_state)
         _mvn_sim(x_state_smooth, self.tmu_state2, self.tvar_state3,
                  z_state, self.llt_state)
         return
