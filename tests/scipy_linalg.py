@@ -329,8 +329,33 @@ def jit_cho_solve(c_and_lower, b, overwrite_b=False, check_finite=True):
 def tri_mult(a_and_lower, x, overwrite_x=False, check_finite=True):
     r"""
     Triangular matrix multiplication :math:`a x`.
+
+    This provides an unoptimized Python implementation for the sole purpose of testing unjitted code.  In the pure Python version, both `overwrite_x` and `check_finite` flags are ignored.
     """
-    raise NotImplementedError
+    (a, lower) = a_and_lower
+    # start by converting to fortran order
+    a1 = np.asfortranarray(a)
+    x1 = np.asfortranarray(x)
+    # since a is typically coming from cho_factor
+    # might have trash in the part that's not referenced.
+    if lower:
+        a1 = scipy.linalg.tril(a1)
+    else:
+        a1 = scipy.linalg.triu(a1)
+    # reshape x into a matrix
+    x1 = x1.reshape((x1.shape[0], -1), order="F")
+    if a1.dtype != x1.dtype:
+        # convert both to float64
+        a1 = np.asarray(a1, dtype=np.float64)
+        x1 = np.asarray(x1, dtype=np.float64)
+    y = np.dot(a1, x1)
+    # back to original shape
+    y = y.reshape(x.shape, order="F")
+    if overwrite_x:
+        # inefficient, but gives the correct result
+        x[:] = y
+        y = x
+    return y
 
 
 @overload(tri_mult)

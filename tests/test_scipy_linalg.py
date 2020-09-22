@@ -37,33 +37,34 @@ def tri_mult_nb(a_and_lower, x, overwrite_x=False, check_finite=True):
 
 cho_factor_sp = scipy.linalg.cho_factor
 cho_solve_sp = scipy.linalg.cho_solve
+tri_mult_sp = scipy_linalg.tri_mult
 
 
-def tri_mult_sp(a_and_lower, x):
-    """
-    Minimal NumPy implementation (no input checking or optimized for speed).
-    """
-    (a, lower) = a_and_lower
-    # start by converting to fortran order
-    a1 = np.asfortranarray(a)
-    x1 = np.asfortranarray(x)
-    # since a is typically coming from cho_factor
-    # might have trash in the part that's not referenced.
-    if lower:
-        a1 = scipy.linalg.tril(a1)
-    else:
-        a1 = scipy.linalg.triu(a1)
-    # reshape x into a matrix
-    x1 = x1.reshape((x1.shape[0], -1), order="F")
-    if a1.dtype != x1.dtype:
-        # convert both to float64
-        a1 = np.asarray(a1, dtype=np.float64)
-        x1 = np.asarray(x1, dtype=np.float64)
-    # plain matrix multiplication
-    y = np.dot(a1, x1)
-    # back to original shape
-    y = y.reshape(x.shape, order="F")
-    return y
+# def tri_mult_sp(a_and_lower, x):
+#     """
+#     Minimal NumPy implementation (no input checking or optimized for speed).
+#     """
+#     (a, lower) = a_and_lower
+#     # start by converting to fortran order
+#     a1 = np.asfortranarray(a)
+#     x1 = np.asfortranarray(x)
+#     # since a is typically coming from cho_factor
+#     # might have trash in the part that's not referenced.
+#     if lower:
+#         a1 = scipy.linalg.tril(a1)
+#     else:
+#         a1 = scipy.linalg.triu(a1)
+#     # reshape x into a matrix
+#     x1 = x1.reshape((x1.shape[0], -1), order="F")
+#     if a1.dtype != x1.dtype:
+#         # convert both to float64
+#         a1 = np.asarray(a1, dtype=np.float64)
+#         x1 = np.asarray(x1, dtype=np.float64)
+#     # plain matrix multiplication
+#     y = np.dot(a1, x1)
+#     # back to original shape
+#     y = y.reshape(x.shape, order="F")
+#     return y
 
 
 # @njit
@@ -174,6 +175,16 @@ class TestNumbaSciPy(unittest.TestCase):
 
     def test_tri_mult(self):
         # test cases
+        # cases = {
+        #     "dtype_a": [np.float64],
+        #     "dtype_x": [np.float64],
+        #     "order_a": ["F"],
+        #     "order_x": ["F"],
+        #     "ndim_x": [2],
+        #     "overwrite_x": [True],
+        #     "check_finite": [True],
+        #     "lower": [False],
+        # }
         cases = {
             "dtype_a": [np.float32, np.float64],
             "dtype_x": [np.float32, np.float64],
@@ -203,7 +214,7 @@ class TestNumbaSciPy(unittest.TestCase):
                 x2 = np.copy(x1)
                 tm_args = {k: case[k]
                            for k in ("overwrite_x", "check_finite")}
-                y1 = tri_mult_sp((a, lower), x1)
+                y1 = tri_mult_sp((a, lower), x1, **tm_args)
                 y2 = tri_mult_nb((a, lower), x2, **tm_args)
                 # check values
                 self.assertLess(rel_err(y1, y2), 1e-6)
