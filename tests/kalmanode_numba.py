@@ -4,7 +4,7 @@ from numba import types
 from numba.experimental import jitclass
 from numba.extending import register_jitable
 from numba.core.errors import TypingError
-from kalmantv_numba import KalmanTV, _mvn_sim, _quad_form
+from kalmantv.numba.kalmantv_numba import KalmanTV, _mvn_sim, _quad_form
 
 
 @register_jitable
@@ -48,7 +48,7 @@ def _interrogate_chkrebtii(x_meas, var_meas,
     """
     _quad_form(var_meas, wgt_meas, var_state_pred, twgt_meas)
     _mvn_sim(tx_state, mu_state_pred, var_state_pred, z_state, tchol_state)
-    fun(x_meas, tx_state, t, theta)
+    fun(tx_state, t, theta, x_meas)
     return
 
 
@@ -167,6 +167,8 @@ class KalmanODE:
         # loop
         for t in range(self.n_eval):
             # kalman filter
+            # reset var_meas
+            self.var_meas = np.zeros((self.n_meas, self.n_meas)).T
             self.ktv.predict(self.mu_state_pred[:, t+1],
                              self.var_state_pred[:, :, t+1],
                              self.mu_state_filt[:, t],
@@ -188,19 +190,18 @@ class KalmanODE:
                                    twgt_meas=self.twgt_meas,
                                    tchol_state=self.tchol_state)
             # rest of kalman filter
-            self.ktv.update(mu_state_filt=self.mu_state_filt[:, t+1],
-                       var_state_filt=self.var_state_filt[:, :, t+1],
-                       mu_state_pred=self.mu_state_pred[:, t+1],
-                       var_state_pred=self.var_state_pred[:, :, t+1],
-                       x_meas=self.x_meas,
-                       mu_meas=self.mu_meas,
-                       wgt_meas=wgt_meas,
-                       var_meas=self.var_meas)
+            self.ktv.update(self.mu_state_filt[:, t+1],
+                            self.var_state_filt[:, :, t+1],
+                            self.mu_state_pred[:, t+1],
+                            self.var_state_pred[:, :, t+1],
+                            self.x_meas,
+                            self.mu_meas,
+                            wgt_meas,
+                            self.var_meas)
 
         # backward pass
         # initialize
-        var_state_smooth = np.empty(self.n_state, self.n_state)
-        var_state_smooth[:] = self.var_state_filt[:, :, self.n_eval]
+        self.var_state_smooth[:] = self.var_state_filt[:, :, self.n_eval]
         if sim_sol:
             _mvn_sim(x_state_smooth[:, self.n_eval],
                      self.mu_state_filt[:, self.n_eval],
@@ -212,23 +213,23 @@ class KalmanODE:
         # loop
         for t in reversed(range(1, self.n_eval)):
             if sim_sol:
-                self.ktv.smooth_sim(x_state_smooth=x_state_smooth[:, t],
-                               x_state_next=x_state_smooth[:, t+1],
-                               mu_state_filt=self.mu_state_filt[:, t],
-                               var_state_filt=self.var_state_filt[:, :, t],
-                               mu_state_pred=self.mu_state_pred[:, t+1],
-                               var_state_pred=self.var_state_pred[:, :, t+1],
-                               wgt_state=self.wgt_state,
-                               z_state=self.z_state[:, t+self.n_steps])
+                self.ktv.smooth_sim(x_state_smooth[:, t],
+                                    x_state_smooth[:, t+1],
+                                    self.mu_state_filt[:, t],
+                                    self.var_state_filt[:, :, t],
+                                    self.mu_state_pred[:, t+1],
+                                    self.var_state_pred[:, :, t+1],
+                                    self.wgt_state,
+                                    self.z_state[:, t+self.n_steps])
             else:
-                self.ktv.smooth_mv(mu_state_smooth=mu_state_smooth[:, t],
-                              var_state_smooth=var_state_smooth,
-                              mu_state_next=mu_state_smooth[:, t+1],
-                              var_state_next=self.var_state_smooth,
-                              mu_state_filt=self.mu_state_filt[:, t],
-                              var_state_filt=self.var_state_filt[:, :, t],
-                              mu_state_pred=self.mu_state_pred[:, t+1],
-                              var_state_pred=self.var_state_pred[:, :, t+1],
-                              wgt_state=self.wgt_state)
+                self.ktv.smooth_mv(mu_state_smooth[:, t],
+                                   self.var_state_smooth,
+                                   mu_state_smooth[:, t+1],
+                                   self.var_state_smooth,
+                                   self.mu_state_filt[:, t],
+                                   self.var_state_filt[:, :, t],
+                                   self.mu_state_pred[:, t+1],
+                                   self.var_state_pred[:, :, t+1],
+                                   self.wgt_state)
 
-        return out
+        return out.T
