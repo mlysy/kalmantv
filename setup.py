@@ -15,20 +15,20 @@ if USE_CYTHON:
     cmdclass.update({'build_ext': build_ext})
 
 # extension modules
-cpp_modules = ['kalmantv']
+cpp_modules = ['cython']
 
 # cpp modules
 ext_c = '.pyx' if USE_CYTHON else '.c'
 ext_cpp = '.pyx' if USE_CYTHON else 'cpp'
-ext_modules = [Extension("kalmantv.blas",
-                         ["kalmantv/blas"+ext_c],
+ext_modules = [Extension("kalmantv.cython.blas",
+                         ["kalmantv/cython/blas"+ext_c],
                          include_dirs=[
                              np.get_include(),
                              sp.get_include()],
                          extra_compile_args=["-O2"],
                          language='c'),
-               Extension("kalmantv.kalmantv",
-                         ["kalmantv/kalmantv"+ext_c],
+               Extension("kalmantv.cython.kalmantv",
+                         ["kalmantv/cython/kalmantv"+ext_c],
                          include_dirs=[
                              np.get_include()],
                          extra_compile_args=["-O2"],
@@ -51,8 +51,8 @@ setup(
     description="Kalman Filtering and Smoothing with Cython",
     keywords="Kalman Cython",
     url="http://github.com/mlysy/kalmantv",
-    packages=['kalmantv'],
-    package_data = {'kalmantv': ["*.pxd"]},
+    packages=['kalmantv/cython', 'kalmantv/numba', 'kalmantv'],
+    package_data = {'kalmantv/cython': ["*.pxd"]},
 
     # cython
     cmdclass=cmdclass,

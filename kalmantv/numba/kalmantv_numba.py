@@ -1,5 +1,5 @@
 import numpy as np
-import scipy_linalg
+import kalmantv.numba.scipy_linalg as scipy_linalg
 import scipy as sp
 import scipy.linalg
 from numba import intc, float64
