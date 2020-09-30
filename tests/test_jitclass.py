@@ -20,20 +20,17 @@ def b(x):
     return x + 5.
 
 
-def aa(x):
-    return x*x
-
-
-def bb(x):
-    return x + 5.
-
-
 class _foo:
     def __init__(self, fun):
         self.fun = fun
 
 
 def foo(fun):
+    """
+    Inputs are all those of `_foo`.
+    From these it creates a spec of all members for `numba.jitclass`.
+    It then creates the jitted class and returns an instance of it initialized with the given inputs.
+    """
     spec = [("fun", typeof(fun))]
     jcl = jitclass(spec)
     foo_cl = jcl(_foo)
@@ -43,7 +40,7 @@ def foo(fun):
 spec = [("fun", typeof(a))]
 bar = jitclass(spec)(_foo)(a)
 
-breakpoint()
+# breakpoint()
 
 bar = foo(a)
 baz = foo(b)
