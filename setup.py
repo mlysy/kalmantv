@@ -1,6 +1,8 @@
 from setuptools import setup, find_packages, Extension
 import numpy as np
-import scipy as sp
+import platform
+import os
+# import scipy as sp
 
 # compile with cython if it's installed
 try:
@@ -12,52 +14,71 @@ except ImportError:
 cmdclass = {}
 if USE_CYTHON:
     # extensions = cythonize(extensions)
-    cmdclass.update({'build_ext': build_ext})
+    cmdclass.update({"build_ext": build_ext})
 
-# extension modules
-cpp_modules = ['cython']
+# path to eigen library
+eigen_path = "eigen-3.3.7"
+
+# compiler options
+if platform.system() != "Windows":
+    extra_compile_args = ["-O3", "-ffast-math",
+                          "-mtune=native", "-march=native", "-fopenmp"]
+    # if platform.system() == "Darwin":
+    #     # default compiler on macOS doesn't support openmp
+    #     os.environ["CC"] = "gcc"
+else:
+    extra_compile_args = ["-O2"]
+
+# remove numpy depreciation warnings as documented here:
+#
+disable_numpy_warnings = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
 
 # cpp modules
-ext_c = '.pyx' if USE_CYTHON else '.c'
-ext_cpp = '.pyx' if USE_CYTHON else 'cpp'
+ext_c = ".pyx" if USE_CYTHON else ".c"
+ext_cpp = ".pyx" if USE_CYTHON else "cpp"
 ext_modules = [Extension("kalmantv.cython.blas",
                          ["kalmantv/cython/blas"+ext_c],
                          include_dirs=[
-                             np.get_include(),
-                             sp.get_include()],
-                         extra_compile_args=["-O2"],
-                         language='c'),
+                             np.get_include()],
+                         # sp.get_include()],
+                         extra_compile_args=extra_compile_args,
+                         define_macros=disable_numpy_warnings,
+                         language="c"),
                Extension("kalmantv.cython.kalmantv",
                          ["kalmantv/cython/kalmantv"+ext_c],
                          include_dirs=[
                              np.get_include()],
-                         extra_compile_args=["-O2"],
-                         language='c')]
-            #    Extension("kalmantv.cython",
-#                          ["kalmantv/{}".format(mod)+ext_cpp for mod in cpp_modules],
-#                          include_dirs=[
-#                              np.get_include(),
-#                              "include/eigen-3.3.7",
-#                              "include"],
-#                          extra_compile_args=['-O2'],
-#                          language='c++'),
-               
+                         extra_compile_args=extra_compile_args,
+                         define_macros=disable_numpy_warnings,
+                         language="c"),
+               Extension("kalmantv.eigen.kalmantv",
+                         ["kalmantv/eigen/kalmantv"+ext_cpp],
+                         include_dirs=[
+                             np.get_include(),
+                             eigen_path],
+                         extra_compile_args=extra_compile_args,
+                         define_macros=disable_numpy_warnings,
+                         language="c++")]
 
 setup(
     name="kalmantv",
     version="0.2",
     author="Mohan Wu, Martin Lysy",
     author_email="mlysy@uwaterloo.ca",
-    description="Kalman Filtering and Smoothing with Cython",
+    description="High-Performance Kalman Filtering and Smoothing",
     keywords="Kalman Cython",
     url="http://github.com/mlysy/kalmantv",
-    packages=['kalmantv/cython', 'kalmantv/numba', 'kalmantv'],
-    package_data = {'kalmantv/cython': ["*.pxd"]},
+    packages=["kalmantv/cython", "kalmantv/numba", "kalmantv/eigen",
+              "kalmantv"],
+    package_data={
+        "kalmantv/cython": ["*.pxd"],
+        "kalmantv/eigen": ["*.pxd"]
+    },
 
     # cython
     cmdclass=cmdclass,
     ext_modules=ext_modules,
- 
-    install_requires=['numpy', 'scipy'],
-    setup_requires=['setuptools>=38'],
+
+    install_requires=["numpy", "numba", "scipy"],
+    setup_requires=["setuptools>=38"],
 )

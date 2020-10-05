@@ -3,7 +3,7 @@ import numpy as np
 import warnings
 from utils import *
 
-#from kalmantv.cython import KalmanTV
+from kalmantv.cython import KalmanTV
 from kalmantv import *
 # from kalmantv.blas import *
 from kalmantv_py import KalmanTV as KTV_py  # our own Python implementation
