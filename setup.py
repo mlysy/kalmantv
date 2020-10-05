@@ -22,7 +22,7 @@ eigen_path = "eigen-3.3.7"
 # compiler options
 if platform.system() != "Windows":
     extra_compile_args = ["-O3", "-ffast-math",
-                          "-mtune=native", "-march=native", "-fopenmp"]
+                          "-mtune=native", "-march=native"]  # , "-fopenmp"]
     # if platform.system() == "Darwin":
     #     # default compiler on macOS doesn't support openmp
     #     os.environ["CC"] = "gcc"
@@ -72,7 +72,7 @@ setup(
               "kalmantv"],
     package_data={
         "kalmantv/cython": ["*.pxd"],
-        "kalmantv/eigen": ["*.pxd"]
+        "kalmantv/eigen": ["*.pxd", "*.h"]
     },
 
     # cython

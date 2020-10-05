@@ -52,22 +52,3 @@ def mvncond(mu, Sigma, icond):
     V = Sigma[np.ix_(~icond, ~icond)] - \
         np.dot(A, Sigma12.T)  # Sigma11 - A * Sigma21
     return A, b, V
-
-
-def get_include():
-    r"""
-    Return the directory that contains the kalmantv \\*.h header files.
-    Extension modules that need to compile against kalmantv should use this
-    function to locate the appropriate include directory.
-
-    Copied from `numpy.get_include()`, except only works after kalmantv has been installed.
-    """
-    import kalmantv
-    if numpy.show_config is None:
-        # running from numpy source directory
-        d = os.path.join(os.path.dirname(numpy.__file__), 'core', 'include')
-    else:
-        # using installed numpy core headers
-        import numpy.core as core
-        d = os.path.join(os.path.dirname(core.__file__), 'include')
-    return d
