@@ -8,7 +8,7 @@
 #include <Eigen/Dense>
 #include <iostream>
 
-namespace KalmanTV {
+namespace kalmantv {
   using namespace Eigen;
 
   /// Time-Varying Kalman Filter and Smoother.
@@ -65,8 +65,8 @@ namespace KalmanTV {
     MatrixXd twgt_meas_;
     MatrixXd twgt_meas2_;
     MatrixXd tvar_meas_;
-    LLT<MatrixXd> llt_meas_;
-    LLT<MatrixXd> llt_state_;
+    LLT<MatrixXd> tllt_meas_;
+    LLT<MatrixXd> tllt_state_;
   public:
     /// Typedefs
     typedef Ref<VectorXd> RefVectorXd;
@@ -77,8 +77,12 @@ namespace KalmanTV {
     typedef Map<const VectorXd> cMapVectorXd;
     typedef Map<MatrixXd> MapMatrixXd;
     typedef Map<const MatrixXd> cMapMatrixXd;
-    /// Constructor
+    /// Default constructor.
+    KalmanTV() {}
+    /// Constructor with arguments.
     KalmanTV(int n_meas, int n_state);
+    /// Perform internal memory allocation for KalmanTV object with given dimensions.
+    void set_dims(int n_meas, int n_state);
     /// Perform one prediction step of the Kalman filter.
     ///
     /// Calculates `theta_n|n-1` from `theta_n-1|n-1`.
@@ -237,7 +241,14 @@ namespace KalmanTV {
   /// @param[in] n_state Number of state variables.
   inline KalmanTV::KalmanTV(int n_meas, int n_state) {
     // Eigen::internal::set_is_malloc_allowed(true);
-    // problem dimensions
+    set_dims(n_meas, n_state);
+    // Eigen::internal::set_is_malloc_allowed(false);
+  }
+
+  /// @param[in] n_meas Number of measurement variables.
+  /// @param[in] n_state Number of state variables.
+  inline void KalmanTV::set_dims(int n_meas, int n_state) {
+        // problem dimensions
     n_meas_ = n_meas;
     n_state_ = n_state;
     // temporary storage
@@ -254,9 +265,9 @@ namespace KalmanTV {
     twgt_meas_ = MatrixXd::Zero(n_meas_, n_state_);
     twgt_meas2_ = MatrixXd::Zero(n_meas_, n_state_);
     // cholesky solvers
-    llt_meas_.compute(MatrixXd::Identity(n_meas_, n_meas_));
-    llt_state_.compute(MatrixXd::Identity(n_state_, n_state_));
-    // Eigen::internal::set_is_malloc_allowed(false);
+    tllt_meas_.compute(MatrixXd::Identity(n_meas_, n_meas_));
+    tllt_state_.compute(MatrixXd::Identity(n_state_, n_state_));
+    return;
   }
 
   /// @param[out] mu_state_pred Predicted state mean `mu_n|n-1`.
@@ -326,10 +337,10 @@ namespace KalmanTV {
     tvar_meas_.noalias() = twgt_meas_ * wgt_meas.adjoint();
     tvar_meas_ += var_meas; // n_meas x n_meas
     // std::cout << "tvar_meas_ = " << tvar_meas_ << std::endl;
-    llt_meas_.compute(tvar_meas_);
+    tllt_meas_.compute(tvar_meas_);
     twgt_meas2_.noalias() = twgt_meas_;
     // std::cout << "twgt_meas2_ = " << twgt_meas2_ << std::endl;
-    llt_meas_.solveInPlace(twgt_meas_);
+    tllt_meas_.solveInPlace(twgt_meas_);
     // std::cout << "twgt_meas_ = " << twgt_meas_ << std::endl;
     tmu_meas_.noalias() = x_meas - tmu_meas_;
     // std::cout << "tmu_meas_ = " << tmu_meas_ << std::endl;
@@ -443,8 +454,8 @@ namespace KalmanTV {
                                   cRefMatrixXd& var_state_pred,
                                   cRefMatrixXd& wgt_state) {
     tvar_state_.noalias() = wgt_state * var_state_filt.adjoint();  
-    llt_state_.compute(var_state_pred); 
-    llt_state_.solveInPlace(tvar_state_); // equivalent to var_state_temp_tilde
+    tllt_state_.compute(var_state_pred); 
+    tllt_state_.solveInPlace(tvar_state_); // equivalent to var_state_temp_tilde
     tmu_state_.noalias() = mu_state_next - mu_state_pred;
     tvar_state2_.noalias() = var_state_next - var_state_pred;
     tvar_state3_.noalias() = tvar_state_.adjoint() * tvar_state2_; 
@@ -499,8 +510,8 @@ namespace KalmanTV {
                                    cRefVectorXd& z_state) {
     tvar_state_.noalias() = wgt_state * var_state_filt.adjoint();
     tvar_state2_.noalias() = tvar_state_; // equivalent to var_state_temp
-    llt_state_.compute(var_state_pred); 
-    llt_state_.solveInPlace(tvar_state_); // equivalent to var_state_temp_tilde
+    tllt_state_.compute(var_state_pred); 
+    tllt_state_.solveInPlace(tvar_state_); // equivalent to var_state_temp_tilde
     tmu_state_.noalias() = xState_next - mu_state_pred;
     // std::cout << "tvar_state_ = " << tvar_state_ << std::endl;
     tmu_state2_.noalias() = tvar_state_.adjoint() * tmu_state_;
@@ -514,8 +525,8 @@ namespace KalmanTV {
     // Cholesky
     state_sim(xState_smooth, tmu_state2_,
               tvar_state3_, z_state);
-/*     llt_state2_.compute(tvar_state4_); // use tvar_state3_ in the algorithm
-    tchol_state_ = llt_state2_.matrixL();
+/*     tllt_state2_.compute(tvar_state4_); // use tvar_state3_ in the algorithm
+    tchol_state_ = tllt_state2_.matrixL();
     xState_smooth.noalias() = tchol_state_ * z_state;
     xState_smooth += tmu_state2_; */
     return;
@@ -609,8 +620,8 @@ namespace KalmanTV {
                                   cRefVectorXd& mu_state,
                                   cRefMatrixXd& var_state,
                                   cRefVectorXd& z_state) {
-    llt_state_.compute(var_state);
-    tchol_state_ = llt_state_.matrixL();
+    tllt_state_.compute(var_state);
+    tchol_state_ = tllt_state_.matrixL();
     x_state.noalias() = tchol_state_ * z_state;
     x_state += mu_state;
     return;
