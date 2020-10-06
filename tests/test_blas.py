@@ -2,10 +2,10 @@ import unittest
 import numpy as np
 import warnings
 from utils import *
+from kalmantv.cython import *
 
 #from kalmantv.cython import KalmanTV
 # from kalmantv import *
-from kalmantv.blas import *
 # from kalmantv_py import KalmanTV as KTV_py  # our own Python implementation
 # from pykalman import standard as pks  # pykalman's Python implementation
 

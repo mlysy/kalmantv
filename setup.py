@@ -22,7 +22,7 @@ eigen_path = "eigen-3.3.7"
 # compiler options
 if platform.system() != "Windows":
     extra_compile_args = ["-O3", "-ffast-math",
-                          "-mtune=native", "-march=native"]  # , "-fopenmp"]
+                          "-mtune=native", "-march=native", "-fopenmp"]
     # if platform.system() == "Darwin":
     #     # default compiler on macOS doesn't support openmp
     #     os.environ["CC"] = "gcc"
@@ -58,7 +58,14 @@ ext_modules = [Extension("kalmantv.cython.blas",
                              eigen_path],
                          extra_compile_args=extra_compile_args,
                          define_macros=disable_numpy_warnings,
-                         language="c++")]
+                         language="c++"),
+               Extension("kalmantv.eigen.omp_init",
+                         ["kalmantv/eigen/omp_init"+ext_c],
+                         include_dirs=[
+                             np.get_include()],
+                         extra_compile_args=extra_compile_args,
+                         define_macros=disable_numpy_warnings,
+                         language="c")]
 
 setup(
     name="kalmantv",

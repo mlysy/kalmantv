@@ -70,9 +70,9 @@ cdef class _KalmanTV:
         Perform one prediction step of the Kalman filter.
         Calculates :math:`\\theta_{n|n-1}` from :math:`\\theta_{n-1|n-1}`.
         """
-        self.ktv.predict( & mu_state_pred[0], & var_state_pred[0, 0],
-                         & mu_state_past[0], & var_state_past[0, 0],
-                         & mu_state[0], & wgt_state[0, 0], & var_state[0, 0])
+        self.ktv.predict(& mu_state_pred[0], & var_state_pred[0, 0],
+                          & mu_state_past[0], & var_state_past[0, 0],
+                          & mu_state[0], & wgt_state[0, 0], & var_state[0, 0])
         return
 
     def update(self,
@@ -88,10 +88,10 @@ cdef class _KalmanTV:
         Perform one update step of the Kalman filter.
         Calculates :math:`\\theta_{n|n}` from :math:`\\theta_{n|n-1}`.
         """
-        self.ktv.update( & mu_state_filt[0], & var_state_filt[0, 0],
-                        & mu_state_pred[0], & var_state_pred[0, 0],
-                        & x_meas[0], & mu_meas[0],
-                        & wgt_meas[0, 0], & var_meas[0, 0])
+        self.ktv.update(& mu_state_filt[0], & var_state_filt[0, 0],
+                         & mu_state_pred[0], & var_state_pred[0, 0],
+                         & x_meas[0], & mu_meas[0],
+                         & wgt_meas[0, 0], & var_meas[0, 0])
         return
 
     def filter(self,
@@ -112,12 +112,12 @@ cdef class _KalmanTV:
         Perform one step of the Kalman filter.
         Combines :func:`KalmanTV.predict` and :func:`KalmanTV.update` steps to get :math:`\\theta_{n|n}` from :math:`\\theta_{n-1|n-1}`.
         """
-        self.ktv.filter( & mu_state_pred[0], & var_state_pred[0, 0],
-                        & mu_state_filt[0], & var_state_filt[0, 0],
-                        & mu_state_past[0], & var_state_past[0, 0],
-                        & mu_state[0], & wgt_state[0, 0], & var_state[0, 0],
-                        & x_meas[0], & mu_meas[0],
-                        & wgt_meas[0, 0], & var_meas[0, 0])
+        self.ktv.filter(& mu_state_pred[0], & var_state_pred[0, 0],
+                         & mu_state_filt[0], & var_state_filt[0, 0],
+                         & mu_state_past[0], & var_state_past[0, 0],
+                         & mu_state[0], & wgt_state[0, 0], & var_state[0, 0],
+                         & x_meas[0], & mu_meas[0],
+                         & wgt_meas[0, 0], & var_meas[0, 0])
         return
 
     def smooth_mv(self,
@@ -134,11 +134,11 @@ cdef class _KalmanTV:
         Perform one step of the Kalman mean/variance smoother.
         Calculates :math:`\\theta_{n|N}` from :math:`\\theta_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
         """
-        self.ktv.smooth_mv( & mu_state_smooth[0], & var_state_smooth[0, 0],
-                           & mu_state_next[0], & var_state_next[0, 0],
-                           & mu_state_filt[0], & var_state_filt[0, 0],
-                           & mu_state_pred[0], & var_state_pred[0, 0],
-                           & wgt_state[0, 0])
+        self.ktv.smooth_mv(& mu_state_smooth[0], & var_state_smooth[0, 0],
+                            & mu_state_next[0], & var_state_next[0, 0],
+                            & mu_state_filt[0], & var_state_filt[0, 0],
+                            & mu_state_pred[0], & var_state_pred[0, 0],
+                            & wgt_state[0, 0])
         return
 
     def smooth_sim(self,
@@ -154,10 +154,10 @@ cdef class _KalmanTV:
         Perform one step of the Kalman sampling smoother.
         Calculates a draw :math:`x_{n|N}` from :math:`x_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
         """
-        self.ktv.smooth_sim( & x_state_smooth[0], & x_state_next[0],
-                            & mu_state_filt[0], & var_state_filt[0, 0],
-                            & mu_state_pred[0], & var_state_pred[0, 0],
-                            & wgt_state[0, 0], & z_state[0])
+        self.ktv.smooth_sim(& x_state_smooth[0], & x_state_next[0],
+                             & mu_state_filt[0], & var_state_filt[0, 0],
+                             & mu_state_pred[0], & var_state_pred[0, 0],
+                             & wgt_state[0, 0], & z_state[0])
         return
 
     def smooth(self,
@@ -178,12 +178,12 @@ cdef class _KalmanTV:
         Combines :func:`KalmanTV.smooth_mv` and :func:`KalmanTV.smooth_sim` steps to get :math:`x_{n|N}` and 
         :math:`\\theta_{n|N}` from :math:`\\theta_{n+1|N}`, :math:`\\theta_{n|n}`, and :math:`\\theta_{n+1|n}`.
         """
-        self.ktv.smooth( & x_state_smooth[0], & mu_state_smooth[0],
-                        & var_state_smooth[0, 0], & x_state_next[0],
-                        & mu_state_next[0], & var_state_next[0, 0],
-                        & mu_state_filt[0], & var_state_filt[0, 0],
-                        & mu_state_pred[0], & var_state_pred[0, 0],
-                        & wgt_state[0, 0], & z_state[0])
+        self.ktv.smooth(& x_state_smooth[0], & mu_state_smooth[0],
+                         & var_state_smooth[0, 0], & x_state_next[0],
+                         & mu_state_next[0], & var_state_next[0, 0],
+                         & mu_state_filt[0], & var_state_filt[0, 0],
+                         & mu_state_pred[0], & var_state_pred[0, 0],
+                         & wgt_state[0, 0], & z_state[0])
         return
 
     def state_sim(self,
@@ -195,6 +195,6 @@ cdef class _KalmanTV:
         Simulates from a normal distribution with mean `mu_state`, variance `var_state`,
         and randomness `z_state` drawn from :math:`N(0, 1)`.
         """
-        self.ktv.state_sim( & x_state[0], & mu_state[0],
-                           & var_state[0, 0], & z_state[0])
+        self.ktv.state_sim(& x_state[0], & mu_state[0],
+                            & var_state[0, 0], & z_state[0])
         return

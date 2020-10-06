@@ -1,6 +1,6 @@
 from numba import njit
 from utils import *
-import scipy_linalg
+import kalmantv.numba.scipy_linalg as scipy_linalg
 import scipy.linalg
 import numpy as np
 import unittest
