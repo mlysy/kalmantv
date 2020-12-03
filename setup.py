@@ -17,14 +17,14 @@ if USE_CYTHON:
     cmdclass.update({"build_ext": build_ext})
 
 # path to eigen library
-EIGEN_PATH = "eigen-3.3.7"
+EIGEN_PATH = r'C:\Users\mohan\Documents\kalmantv\eigen-3.3.7'
 def write_eigen(eigen_path=EIGEN_PATH):
     cnt = """
 # THIS FILE IS GENERATED FROM KALMANTV SETUP.PY
 #
 eigen_path = r'%(eigen_path)s'
 """
-    eigen_path = os.path.abspath(eigen_path)
+    eigen_path = eigen_path
     a = open("kalmantv/eigen_path.py", 'w')
     try:
         a.write(cnt % {'eigen_path': eigen_path})
