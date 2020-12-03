@@ -17,17 +17,29 @@ if USE_CYTHON:
     cmdclass.update({"build_ext": build_ext})
 
 # path to eigen library
-eigen_path = "eigen-3.3.7"
+EIGEN_PATH = "eigen-3.3.7"
+def write_eigen(eigen_path=EIGEN_PATH):
+    cnt = """
+# THIS FILE IS GENERATED FROM KALMANTV SETUP.PY
+#
+eigen_path = r'%(eigen_path)s'
+"""
+    eigen_path = os.path.abspath(eigen_path)
+    a = open("kalmantv/eigen_path.py", 'w')
+    try:
+        a.write(cnt % {'eigen_path': eigen_path})
+    finally:
+        a.close()
 
 # compiler options
 if platform.system() != "Windows":
     extra_compile_args = ["-O3", "-ffast-math",
-                          "-mtune=native", "-march=native", "-fopenmp"]
-    # if platform.system() == "Darwin":
-    #     # default compiler on macOS doesn't support openmp
-    #     os.environ["CC"] = "gcc"
+                          "-mtune=native", "-march=native"]
+    if platform.system() != "Darwin":
+        # default compiler on macOS doesn't support openmp
+        extra_compile_args.append("-fopenmp")
 else:
-    extra_compile_args = ["-O2"]
+    extra_compile_args = ["-O2","/openmp"]
 
 # remove numpy depreciation warnings as documented here:
 #
@@ -55,7 +67,7 @@ ext_modules = [Extension("kalmantv.cython.blas",
                          ["kalmantv/eigen/kalmantv"+ext_cpp],
                          include_dirs=[
                              np.get_include(),
-                             eigen_path],
+                             EIGEN_PATH],
                          extra_compile_args=extra_compile_args,
                          define_macros=disable_numpy_warnings,
                          language="c++"),
@@ -67,6 +79,7 @@ ext_modules = [Extension("kalmantv.cython.blas",
                          define_macros=disable_numpy_warnings,
                          language="c")]
 
+write_eigen()
 setup(
     name="kalmantv",
     version="0.2",

@@ -1,11 +1,11 @@
 KalmanTV Class
 ==============
-.. automodule:: kalmantv.kalmantv
+.. automodule:: kalmantv.cython.kalmantv
     :members:
 
 BLAS Operations
 ===============
-.. automodule:: kalmantv.blas
+.. automodule:: kalmantv.cython.blas
     :members:
 
 Gaussian Model
