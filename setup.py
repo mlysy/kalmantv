@@ -17,17 +17,27 @@ if USE_CYTHON:
     cmdclass.update({"build_ext": build_ext})
 
 # path to eigen library
-EIGEN_PATH = r'C:\Users\mohan\Documents\kalmantv\eigen-3.3.7'
-def write_eigen(eigen_path=EIGEN_PATH):
+EIGEN_PATH = r"eigen-3.3.7"
+def package_files(directory):
+    paths = []
+    for (path, _, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join('..', path, filename))
+    return paths
+
+extra_files = package_files(EIGEN_PATH)
+def write_eigen():
     cnt = """
 # THIS FILE IS GENERATED FROM KALMANTV SETUP.PY
 #
-eigen_path = r'%(eigen_path)s'
+import kalmantv
+import os
+def get_include():
+    return os.path.join(kalmantv.__path__[0], "include")
 """
-    eigen_path = eigen_path
     a = open("kalmantv/eigen_path.py", 'w')
     try:
-        a.write(cnt % {'eigen_path': eigen_path})
+        a.write(cnt)
     finally:
         a.close()
 
@@ -89,16 +99,19 @@ setup(
     keywords="Kalman Cython",
     url="http://github.com/mlysy/kalmantv",
     packages=["kalmantv/cython", "kalmantv/numba", "kalmantv/eigen",
-              "kalmantv"],
+            "kalmantv", "kalmantv/include"],
+    package_dir = {"kalmantv/include":EIGEN_PATH},
     package_data={
         "kalmantv/cython": ["*.pxd"],
-        "kalmantv/eigen": ["*.pxd", "*.h"]
+        "kalmantv/eigen": ["*.pxd", "*.h"],
+        "kalmantv/include" : extra_files
     },
-
+    #package_data = packagefiles,
     # cython
     cmdclass=cmdclass,
     ext_modules=ext_modules,
 
     install_requires=["numpy", "numba", "scipy"],
     setup_requires=["setuptools>=38"],
-)
+    #data_files = datafiles,
+    )
