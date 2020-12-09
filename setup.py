@@ -33,7 +33,7 @@ def write_eigen():
 import kalmantv
 import os
 def get_include():
-    return os.path.join(kalmantv.__path__[0], "include")
+    return os.path.join(kalmantv.__path__[0], "include/eigen")
 """
     a = open("kalmantv/eigen_path.py", 'w')
     try:
@@ -99,19 +99,20 @@ setup(
     keywords="Kalman Cython",
     url="http://github.com/mlysy/kalmantv",
     packages=["kalmantv/cython", "kalmantv/numba", "kalmantv/eigen",
-            "kalmantv", "kalmantv/include"],
-    package_dir = {"kalmantv/include":EIGEN_PATH},
+            "kalmantv", "kalmantv/include/eigen"],
+    package_dir = {"kalmantv/include/eigen":EIGEN_PATH},
     package_data={
         "kalmantv/cython": ["*.pxd"],
         "kalmantv/eigen": ["*.pxd", "*.h"],
-        "kalmantv/include" : extra_files
+        "kalmantv/include/eigen" : extra_files
     },
     #package_data = packagefiles,
     # cython
     cmdclass=cmdclass,
     ext_modules=ext_modules,
 
-    install_requires=["numpy", "numba", "scipy"],
+    install_requires=['numpy>=1.16.4', 'scipy>=1.2.1', 'numba==0.51.2', 'Cython==0.29.12'],
     setup_requires=["setuptools>=38"],
+    extras_require={'graph': ['matplotlib==3.1.0']}
     #data_files = datafiles,
     )
