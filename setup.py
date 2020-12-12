@@ -111,8 +111,7 @@ setup(
     cmdclass=cmdclass,
     ext_modules=ext_modules,
 
-    install_requires=['numpy>=1.16.4', 'scipy>=1.2.1', 'numba==0.51.2', 'Cython==0.29.12'],
-    setup_requires=["setuptools>=38"],
+    install_requires=['numpy>=1.16.4', 'scipy>=1.2.1', 'numba>=0.51.2', 'Cython>=0.29.12'],
     extras_require={'graph': ['matplotlib==3.1.0']}
     #data_files = datafiles,
     )
