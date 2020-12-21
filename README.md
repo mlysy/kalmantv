@@ -78,7 +78,7 @@ var_state_filt = np.empty((n_state, n_state), order='F')
 
 # Run the filtering algorithm
 ktv.filter(mu_state_pred, var_state_pred,
-	       mu_state_filt, var_state_filt,
+           mu_state_filt, var_state_filt,
            mu_state_past, var_state_past,
            mu_state, wgt_state, var_state,
            x_meas, mu_meas, wgt_meas, var_meas)

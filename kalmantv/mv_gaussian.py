@@ -33,12 +33,9 @@ def ss2gss(wgt_state, mu_state, var_state, wgt_meas, mu_meas, var_meas):
 
     Returns:
         (tuple):
-        - **wgt_gss** (ndarray(n_gss, n_gss, steps)): Transition matrices in the Gaussian process;
-            denoted by :math:`A_n`.
-        - **mu_gss** (ndarray(n_gss, steps)): Transition offsets in the Gaussian process;
-            denoted by :math:`b_n`.
-        - **chol_gss** (ndarray(n_gss, n_gss, steps)): Cholesky of the variance matrices in the 
-            Gaussian process; denoted by :math:`C_n`.
+        - **wgt_gss** (ndarray(n_gss, n_gss, steps)): Transition matrices in the Gaussian process; denoted by :math:`A_n`.
+        - **mu_gss** (ndarray(n_gss, steps)): Transition offsets in the Gaussian process; denoted by :math:`b_n`.
+        - **chol_gss** (ndarray(n_gss, n_gss, steps)): Cholesky of the variance matrices in the Gaussian process; denoted by :math:`C_n`.
 
     """
     # dimensions

@@ -179,6 +179,13 @@ def jit_cho_factor(a, lower=False, overwrite_a=False, check_finite=True):
     njit implementation of `scipy.linalg.cho_factor()`.
 
     - As with the original scipy implementation, overwrite_a only "works" if the input array is in contiguous fortran order.  Otherwise a copy is created.
+
+    Args:
+        a (ndarray(dim1, dim2)): 2-dimensional matrix.
+    
+    Returns:
+        (tuple): Cholesky factorization of matrix a and indicator if it is lower triangular.
+
     """
 
     # Reject non-ndarray types
@@ -251,6 +258,13 @@ def jit_cho_factor(a, lower=False, overwrite_a=False, check_finite=True):
 def jit_cho_solve(c_and_lower, b, overwrite_b=False, check_finite=True):
     r"""
     njit implementation of `scipy.linalg.cho_solve()`.
+
+    Args:
+        c_and_lower (tuple): 2-d Matrix and indicator if it is lower triangular.
+        b (ndarray(dim1, dim2)): 2-d Matrix.
+    
+    Returns:
+        (ndarray(dim1, dim2)): Solved matrix.
     """
     (c, lower) = c_and_lower
     # Reject non-ndarray types
@@ -360,6 +374,16 @@ def tri_mult(a_and_lower, x, overwrite_x=False, check_finite=True):
 
 @overload(tri_mult)
 def jit_tri_mult(a_and_lower, x, overwrite_x=False, check_finite=True):
+    r"""
+    Triangular matrix multiplication :math:`a x`.
+    
+    Args:
+        a_and_lower (tuple):  2-d Matrix and indicator if it is lower triangular.
+        x (ndarray(dim1, dim2)): 2-d Matrix.
+    
+    Returns:
+        (ndarray(dim1, dim2)): :math:`a x`.
+    """
     (a, lower) = a_and_lower
     # Reject non-ndarray types
     if not isinstance(a, types.Array) or not isinstance(x, types.Array):
