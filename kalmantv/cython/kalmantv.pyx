@@ -44,20 +44,19 @@ cdef class KalmanTV:
     smooth the mean and variance of the Kalman Filter. This method is useful if one wants to track 
     an object with streaming observations.
 
-    The specific model we are using to track streaming observations is
+    The specific model we are using to approximate the solution :math:`x_n` is
 
     .. math::
 
-        X_n = c_n + T_n X_{n-1} + R_n^{1/2} \epsilon_n
+        x_n = Q(x_{n-1} -\lambda) + \lambda + R_n^{1/2} \epsilon_n
 
-        y_n = d_n + W_n x_n + H_n^{1/2} \eta_n
+        y_n = d + W x_n + \Sigma_n^{1/2} \eta_n
 
     where :math:`\epsilon_n` and :math:`\eta_n` are independent :math:`N(0,1)` distributions and
-    :math:`X_n` denotes the state of the Kalman Filter at time n and :math:`y_n` denotes the 
-    observation at time n.
+    :math:`y_n` denotes the model interrogation (observation) at time n.
 
     The variables of the model are defined below in the argument section. The methods of this class
-    calculates :math:`\theta = (\mu, \Sigma)` for :math:`X_n` and the notation for
+    calculates :math:`\theta = (\mu, \Sigma)` for :math:`x_n` and the notation for
     the state at time n given observations from k is given by :math:`\theta_{n|K}`.
 
     Args:
@@ -86,13 +85,13 @@ cdef class KalmanTV:
         var_state_smooth (ndarray(n_state, n_state)): Covariance of estimate for state at time n given 
             observations from times [0...N]; denoted by :math:`\Sigma_{n|N}`.
         x_state (ndarray(n_state)): Simulated state vector; :math:`x_n`.
-        mu_state (ndarray(n_state)): Transition offsets defining the solution prior; denoted by :math:`c_n`.
-        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the solution prior; denoted by :math:`T_n`.
-        var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R_n`.
+        mu_state (ndarray(n_state)): Transition offsets defining the solution prior; denoted by :math:`\lambda`.
+        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the solution prior; denoted by :math:`Q`.
+        var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R`.
         x_meas (ndarray(n_meas)): Interrogated measure vector from `x_state`; :math:`y_n`.
-        mu_meas (ndarray(n_meas)): Transition offsets defining the measure prior; denoted by :math:`d_n`.
-        wgt_meas (ndarray(n_meas, n_meas)): Transition matrix defining the measure prior; denoted by :math:`W_n`.
-        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`H_n`.
+        mu_meas (ndarray(n_meas)): Transition offsets defining the measure prior; denoted by :math:`d`.
+        wgt_meas (ndarray(n_meas, n_meas)): Transition matrix defining the measure prior; denoted by :math:`W`.
+        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`\Sigma_n`.
         z_state (ndarray(n_state)): Random vector simulated from :math:`N(0, 1)`.
 
     """

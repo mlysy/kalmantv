@@ -104,24 +104,23 @@ _KalmanTV_spec = [
 @ jitclass(_KalmanTV_spec)
 class KalmanTV(object):
     r"""
-    Create a Kalman Time-Varying object. The methods of the object can predict, update, sample and
-    smooth the mean and variance of the Kalman Filter. This method is useful if one wants to track
+    Create a Kalman Time-Varying object. The methods of the object can predict, update, sample and 
+    smooth the mean and variance of the Kalman Filter. This method is useful if one wants to track 
     an object with streaming observations.
 
-    The specific model we are using to track streaming observations is
+    The specific model we are using to approximate the solution :math:`x_n` is
 
     .. math::
 
-        X_n = c_n + T_n X_{n-1} + R_n^{1/2} \epsilon_n
+        x_n = Q(x_{n-1} -\lambda) + \lambda + R_n^{1/2} \epsilon_n
 
-        y_n = d_n + W_n x_n + H_n^{1/2} \eta_n
+        y_n = d + W x_n + \Sigma_n^{1/2} \eta_n
 
     where :math:`\epsilon_n` and :math:`\eta_n` are independent :math:`N(0,1)` distributions and
-    :math:`X_n` denotes the state of the Kalman Filter at time n and :math:`y_n` denotes the
-    observation at time n.
+    :math:`y_n` denotes the model interrogation (observation) at time n.
 
     The variables of the model are defined below in the argument section. The methods of this class
-    calculates :math:`\theta = (\mu, \Sigma)` for :math:`X_n` and the notation for
+    calculates :math:`\theta = (\mu, \Sigma)` for :math:`x_n` and the notation for
     the state at time n given observations from k is given by :math:`\theta_{n|K}`.
 
     Notes:
@@ -131,36 +130,36 @@ class KalmanTV(object):
     Args:
         n_state (int): Number of state variables.
         n_meas (int): Number of measurement variables.
-        mu_state_past (ndarray(n_state)): Mean estimate for state at time n-1 given observations from
-            times [0...n-1]; :math:`\mu_{n-1|n-1}`.
-        var_state_past (ndarray(n_state, n_state)): Covariance of estimate for state at time n-1 given
+        mu_state_past (ndarray(n_state)): Mean estimate for state at time n-1 given observations from 
+            times [0...n-1]; :math:`\mu_{n-1|n-1}`. 
+        var_state_past (ndarray(n_state, n_state)): Covariance of estimate for state at time n-1 given 
             observations from times [0...n-1]; :math:`\Sigma_{n-1|n-1}`.
-        mu_state_pred (ndarray(n_state)): Mean estimate for state at time n given observations from
-            times [0...n-1]; denoted by :math:`\mu_{n|n-1}`.
-        var_state_pred (ndarray(n_state, n_state)): Covariance of estimate for state at time n given
+        mu_state_pred (ndarray(n_state)): Mean estimate for state at time n given observations from 
+            times [0...n-1]; denoted by :math:`\mu_{n|n-1}`. 
+        var_state_pred (ndarray(n_state, n_state)): Covariance of estimate for state at time n given 
             observations from times [0...n-1]; denoted by :math:`\Sigma_{n|n-1}`.
-        mu_state_filt (ndarray(n_state)): Mean estimate for state at time n given observations from
-            times [0...n]; denoted by :math:`\mu_{n|n}`.
-        var_state_filt (ndarray(n_state, n_state)): Covariance of estimate for state at time n given
+        mu_state_filt (ndarray(n_state)): Mean estimate for state at time n given observations from 
+            times [0...n]; denoted by :math:`\mu_{n|n}`. 
+        var_state_filt (ndarray(n_state, n_state)): Covariance of estimate for state at time n given 
             observations from times [0...n]; denoted by :math:`\Sigma_{n|n}`.
-        mu_state_next (ndarray(n_state)): Mean estimate for state at time n+1 given observations from
-            times [0...N]; denoted by :math:`\mu_{n+1|N}`.
-        var_state_next (ndarray(n_state, n_state)): Covariance of estimate for state at time n+1 given
+        mu_state_next (ndarray(n_state)): Mean estimate for state at time n+1 given observations from 
+            times [0...N]; denoted by :math:`\mu_{n+1|N}`. 
+        var_state_next (ndarray(n_state, n_state)): Covariance of estimate for state at time n+1 given 
             observations from times [0...N]; denoted by :math:`\Sigma_{n+1|N}`.
         x_state_smooths (ndarray(n_state)): Sample solution at time n given observations from times [0...N];
             denoted by :math:`X_{n|N}`
-        mu_state_smooth (ndarray(n_state)): Mean estimate for state at time n given observations from
+        mu_state_smooth (ndarray(n_state)): Mean estimate for state at time n given observations from 
             times [0...N]; denoted by :math:`\mu_{n|N}`.
-        var_state_smooth (ndarray(n_state, n_state)): Covariance of estimate for state at time n given
+        var_state_smooth (ndarray(n_state, n_state)): Covariance of estimate for state at time n given 
             observations from times [0...N]; denoted by :math:`\Sigma_{n|N}`.
         x_state (ndarray(n_state)): Simulated state vector; :math:`x_n`.
-        mu_state (ndarray(n_state)): Transition offsets defining the solution prior; denoted by :math:`c_n`.
-        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the solution prior; denoted by :math:`T_n`.
-        var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R_n`.
+        mu_state (ndarray(n_state)): Transition offsets defining the solution prior; denoted by :math:`\lambda`.
+        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the solution prior; denoted by :math:`Q`.
+        var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R`.
         x_meas (ndarray(n_meas)): Interrogated measure vector from `x_state`; :math:`y_n`.
-        mu_meas (ndarray(n_meas)): Transition offsets defining the measure prior; denoted by :math:`d_n`.
-        wgt_meas (ndarray(n_meas, n_meas)): Transition matrix defining the measure prior; denoted by :math:`W_n`.
-        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`H_n`.
+        mu_meas (ndarray(n_meas)): Transition offsets defining the measure prior; denoted by :math:`d`.
+        wgt_meas (ndarray(n_meas, n_meas)): Transition matrix defining the measure prior; denoted by :math:`W`.
+        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`\Sigma_n`.
         z_state (ndarray(n_state)): Random vector simulated from :math:`N(0, 1)`.
 
     """
