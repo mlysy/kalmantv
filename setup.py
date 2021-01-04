@@ -18,6 +18,8 @@ if USE_CYTHON:
 
 # path to eigen library
 EIGEN_PATH = r"eigen-3.3.7"
+
+
 def package_files(directory):
     paths = []
     for (path, _, filenames) in os.walk(directory):
@@ -25,7 +27,10 @@ def package_files(directory):
             paths.append(os.path.join('..', path, filename))
     return paths
 
+
 extra_files = package_files(EIGEN_PATH)
+
+
 def write_eigen():
     cnt = """
 # THIS FILE IS GENERATED FROM KALMANTV SETUP.PY
@@ -41,6 +46,7 @@ def get_include():
     finally:
         a.close()
 
+
 # compiler options
 if platform.system() != "Windows":
     extra_compile_args = ["-O3", "-ffast-math",
@@ -49,10 +55,10 @@ if platform.system() != "Windows":
         # default compiler on macOS doesn't support openmp
         extra_compile_args.append("-fopenmp")
 else:
-    extra_compile_args = ["-O2","/openmp"]
+    extra_compile_args = ["-O2", "/openmp"]
 
 # remove numpy depreciation warnings as documented here:
-#
+# https://cython.readthedocs.io/en/latest/src/userguide/migrating_to_cy30.html#numpy-c-api
 disable_numpy_warnings = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
 
 # cpp modules
@@ -99,19 +105,25 @@ setup(
     keywords="Kalman Cython",
     url="http://github.com/mlysy/kalmantv",
     packages=["kalmantv/cython", "kalmantv/numba", "kalmantv/eigen",
-            "kalmantv", "kalmantv/include/eigen"],
-    package_dir = {"kalmantv/include/eigen":EIGEN_PATH},
+              "kalmantv", "kalmantv/include/eigen"],
+    package_dir={"kalmantv/include/eigen": EIGEN_PATH},
     package_data={
         "kalmantv/cython": ["*.pxd"],
         "kalmantv/eigen": ["*.pxd", "*.h"],
-        "kalmantv/include/eigen" : extra_files
+        "kalmantv/include/eigen": extra_files
     },
     #package_data = packagefiles,
     # cython
     cmdclass=cmdclass,
     ext_modules=ext_modules,
 
-    install_requires=['numpy>=1.16.4', 'scipy>=1.2.1', 'numba>=0.51.2', 'Cython>=0.29.12'],
-    extras_require={'graph': ['matplotlib==3.1.0']}
+    install_requires=[
+        'numpy>=1.16.4', 'scipy>=1.2.1',
+        'numba>=0.51.2', 'Cython>=0.29.12'
+    ],
+    extras_require={
+        'graph': ['matplotlib'],
+        'tests': ['pandas']
+    }
     #data_files = datafiles,
-    )
+)
