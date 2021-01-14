@@ -1,4 +1,1 @@
-try:
-    from .eigen_path import get_include
-except ImportError:
-    pass
+from .utils import get_include

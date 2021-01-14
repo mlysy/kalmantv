@@ -27,25 +27,7 @@ def package_files(directory):
             paths.append(os.path.join('..', path, filename))
     return paths
 
-
 extra_files = package_files(EIGEN_PATH)
-
-
-def write_eigen():
-    cnt = """
-# THIS FILE IS GENERATED FROM KALMANTV SETUP.PY
-#
-import kalmantv
-import os
-def get_include():
-    return os.path.join(kalmantv.__path__[0], "include/eigen")
-"""
-    a = open("kalmantv/eigen_path.py", 'w')
-    try:
-        a.write(cnt)
-    finally:
-        a.close()
-
 
 # compiler options
 if platform.system() != "Windows":
@@ -95,7 +77,6 @@ ext_modules = [Extension("kalmantv.cython.blas",
                          define_macros=disable_numpy_warnings,
                          language="c")]
 
-write_eigen()
 setup(
     name="kalmantv",
     version="0.2",
@@ -122,8 +103,7 @@ setup(
         'numba>=0.51.2', 'Cython>=0.29.12'
     ],
     extras_require={
-        'graph': ['matplotlib'],
+        'docs': ['sphinx'],
         'tests': ['pandas']
     }
-    #data_files = datafiles,
 )

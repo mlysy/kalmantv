@@ -1,7 +1,7 @@
 import os
+import kalmantv
 import numpy as np
 import scipy.linalg
-
 
 def _solveV(V, B=None):
     """
@@ -52,3 +52,17 @@ def mvncond(mu, Sigma, icond):
     V = Sigma[np.ix_(~icond, ~icond)] - \
         np.dot(A, Sigma12.T)  # Sigma11 - A * Sigma21
     return A, b, V
+
+def get_include():
+    """
+    Returns the path to the Eigen directory.
+    """
+    try:
+        import kalmantv.include
+        return os.path.join(kalmantv.__path__[0], "include/eigen")
+    except ImportError as e:
+        msg = """The get_include() path will not be correct if you import kalmantv
+        from its source directory; please exit the kalmantv source tree, and relaunch
+        your python interpreter if you need to use kalman.get_include()."""
+        raise ImportError(msg) from e
+    
