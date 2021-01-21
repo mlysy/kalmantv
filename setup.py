@@ -27,6 +27,7 @@ def package_files(directory):
             paths.append(os.path.join('..', path, filename))
     return paths
 
+
 extra_files = package_files(EIGEN_PATH)
 
 # compiler options
@@ -103,7 +104,7 @@ setup(
         'numba>=0.51.2', 'Cython>=0.29.12'
     ],
     extras_require={
-        'docs': ['sphinx'],
+        'docs': ['sphinx', 'sphinx_rtd_theme', 'recommonmark'],
         'tests': ['pandas']
     }
 )

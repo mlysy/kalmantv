@@ -27,6 +27,7 @@ pip install .
 
 The unit tests are done against the **pykalman** library to ensure the same results.  From inside the root folder of the **kalmantv** source code:
 ```bash
+pip install .[tests]
 cd tests
 python -m unittest discover -v
 ```
@@ -35,6 +36,7 @@ python -m unittest discover -v
 
 The HTML documentation can be compiled from the **kalmantv** root folder:
 ```bash
+pip install .[docs]
 cd docs
 make html
 ```
