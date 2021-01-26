@@ -2,7 +2,6 @@ from setuptools import setup, find_packages, Extension
 import numpy as np
 import platform
 import os
-# import scipy as sp
 
 # compile with cython if it's installed
 try:
@@ -16,9 +15,23 @@ if USE_CYTHON:
     # extensions = cythonize(extensions)
     cmdclass.update({"build_ext": build_ext})
 
+# readthedocs install 
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
+if on_rtd:
+    import urllib.request
+    import tarfile
+    url = 'https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz'
+    tar_file = r"eigen-3.3.7.tar.gz"
+    opener = urllib.request.build_opener()
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    urllib.request.install_opener(opener)
+    urllib.request.urlretrieve(url, tar_file)
+    tar = tarfile.open(tar_file, "r:gz")
+    tar.extractall()
+    tar.close()
+
 # path to eigen library
 EIGEN_PATH = r"eigen-3.3.7"
-
 
 def package_files(directory):
     paths = []
