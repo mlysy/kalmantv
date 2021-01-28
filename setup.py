@@ -47,7 +47,7 @@ extra_files = package_files(EIGEN_PATH)
 if platform.system() != "Windows":
     extra_compile_args = ["-O3", "-ffast-math",
                           "-mtune=native", "-march=native"]
-    if platform.system() != "Darwin":
+    if platform.system() != "Darwin" and not on_rtd:
         # default compiler on macOS doesn't support openmp
         extra_compile_args.append("-fopenmp")
 else:
