@@ -17,7 +17,7 @@ if USE_CYTHON:
     cmdclass.update({"build_ext": build_ext})
 
 # readthedocs install 
-on_rtd = os.environ.get('READTHEDOCS') == 'True
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
 # path to eigen library
 EIGEN_PATH = eigenpip.get_include()
@@ -104,7 +104,7 @@ setup(
     install_requires=[
         'numpy>=1.16.4', 'scipy>=1.2.1',
         'numba>=0.51.2', 'Cython>=0.29.12',
-        'git+git://github.com/mohanwu/eigenpip.git'
+        'eigenpip @ https://github.com/mohanwu/eigenpip/archive/main.zip'
     ],
     extras_require={
         'docs': ['sphinx', 'sphinx_rtd_theme', 'recommonmark'],
