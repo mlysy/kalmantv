@@ -2,5 +2,6 @@ numpy
 scipy
 Cython
 numba
+git+git://github.com/mohanwu/eigenpip.git
 sphinx_rtd_theme
 recommonmark
