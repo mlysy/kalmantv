@@ -2,7 +2,7 @@ from setuptools import setup, find_packages, Extension
 import numpy as np
 import platform
 import os
-import eigenpip
+import eigenpip as epip
 
 # compile with cython if it's installed
 try:
@@ -20,17 +20,17 @@ if USE_CYTHON:
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
 # path to eigen library
-EIGEN_PATH = eigenpip.get_include()
+#EIGEN_PATH = epip.get_include()
 
-def package_files(directory):
-    paths = []
-    for (path, _, filenames) in os.walk(directory):
-        for filename in filenames:
-            paths.append(os.path.join('..', path, filename))
-    return paths
+#def package_files(directory):
+#    paths = []
+#    for (path, _, filenames) in os.walk(directory):
+#        for filename in filenames:
+#            paths.append(os.path.join('..', path, filename))
+#    return paths
 
 
-extra_files = package_files(EIGEN_PATH)
+#extra_files = package_files(EIGEN_PATH)
 
 # compiler options
 if platform.system() != "Windows":
@@ -68,7 +68,7 @@ ext_modules = [Extension("kalmantv.cython.blas",
                          ["kalmantv/eigen/kalmantv"+ext_cpp],
                          include_dirs=[
                              np.get_include(),
-                             EIGEN_PATH],
+                             epip.get_include()],
                          extra_compile_args=extra_compile_args,
                          define_macros=disable_numpy_warnings,
                          language="c++"),
@@ -89,12 +89,14 @@ setup(
     keywords="Kalman Cython",
     url="http://github.com/mlysy/kalmantv",
     packages=["kalmantv/cython", "kalmantv/numba", "kalmantv/eigen",
-              "kalmantv", "kalmantv/include/eigen"],
-    package_dir={"kalmantv/include/eigen": EIGEN_PATH},
+              "kalmantv", 
+              #"kalmantv/include/eigen"
+              ],
+    #package_dir={"kalmantv/include/eigen": EIGEN_PATH},
     package_data={
         "kalmantv/cython": ["*.pxd"],
         "kalmantv/eigen": ["*.pxd", "*.h"],
-        "kalmantv/include/eigen": extra_files
+        #"kalmantv/include/eigen": extra_files
     },
     #package_data = packagefiles,
     # cython
