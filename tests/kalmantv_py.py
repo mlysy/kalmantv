@@ -49,9 +49,12 @@ class KalmanTV(object):
         var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R`.
         x_meas (ndarray(n_meas)): Measure at time n+1; denoted by :math:`y_{n+1}`.
         mu_meas (ndarray(n_meas)): Transition_offsets defining the measure prior; denoted by :math:`d`.
-        wgt_meas (ndarray(n_meas, n_meas)): Transition matrix defining the measure prior; denoted by :math:`W`.
+        wgt_meas (ndarray(n_meas, n_state)): Transition matrix defining the measure prior; denoted by :math:`W`.
         var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`H`.
-
+        mu_fore (ndarray(n_meas)): Mean estimate for measurement at n given observations from [0...n-1]
+        var_fore (ndarray(n_meas, n_meas)): Covariance of estimate for state at time n given 
+            observations from times [0...n-1]
+            
     """
 
     def __init__(self, n_meas, n_state):
@@ -229,3 +232,19 @@ class KalmanTV(object):
                   z_state):
         x_state[:] = np.linalg.cholesky(var_state).dot(z_state)
         x_state += mu_state
+
+    def forecast(self,
+                 mu_fore,
+                 var_fore,
+                 mu_state_pred,
+                 var_state_pred,
+                 mu_meas,
+                 wgt_meas,
+                 var_meas):
+        r"""
+        Forecasts the mean and variance of the measurement at time step n given observations from times [0...n-1].
+        """
+        mu_fore[:] = wgt_meas.dot(mu_state_pred) + mu_meas
+        var_fore[:] = np.linalg.multi_dot(
+            [wgt_meas, var_state_pred, wgt_meas.T]) + var_meas
+        return

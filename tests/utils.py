@@ -232,3 +232,21 @@ def _test_smooth(n_state, n_meas, ktv1, ktv2):
                 wgt_state, z_state)
     return mu_state_smooth1, var_state_smooth1, x_state_smooth1, \
         mu_state_smooth2, var_state_smooth2, x_state_smooth2,
+
+def _test_forecast(n_state, n_meas, ktv1, ktv2):
+    mu_state_pred = rand_vec(n_state)
+    var_state_pred = rand_mat(n_state)
+    mu_meas = rand_vec(n_meas)
+    wgt_meas = rand_mat(n_meas, n_state, pd=False)
+    var_meas = rand_mat(n_meas)
+    mu_fore1 = np.empty(n_meas)
+    var_fore1 = np.empty((n_meas, n_meas), order='F')
+    mu_fore2 = np.empty(n_meas)
+    var_fore2 = np.empty((n_meas, n_meas), order='F')
+    ktv1.forecast(mu_fore1, var_fore1,
+                  mu_state_pred, var_state_pred,
+                  mu_meas, wgt_meas, var_meas)
+    ktv2.forecast(mu_fore2, var_fore2,
+                  mu_state_pred, var_state_pred,
+                  mu_meas, wgt_meas, var_meas)
+    return mu_fore1, var_fore1, mu_fore2, var_fore2

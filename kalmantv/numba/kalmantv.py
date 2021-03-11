@@ -158,9 +158,12 @@ class KalmanTV(object):
         var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R`.
         x_meas (ndarray(n_meas)): Interrogated measure vector from `x_state`; :math:`y_n`.
         mu_meas (ndarray(n_meas)): Transition offsets defining the measure prior; denoted by :math:`d`.
-        wgt_meas (ndarray(n_meas, n_meas)): Transition matrix defining the measure prior; denoted by :math:`W`.
+        wgt_meas (ndarray(n_meas, n_state)): Transition matrix defining the measure prior; denoted by :math:`W`.
         var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`\Sigma_n`.
         z_state (ndarray(n_state)): Random vector simulated from :math:`N(0, 1)`.
+        mu_fore (ndarray(n_meas)): Mean estimate for measurement at n given observations from [0...n-1]
+        var_fore (ndarray(n_meas, n_meas)): Covariance of estimate for state at time n given 
+            observations from times [0...n-1]
 
     """
 
@@ -336,4 +339,21 @@ class KalmanTV(object):
                         mu_state_filt, var_state_filt,
                         mu_state_pred, var_state_pred,
                         wgt_state, z_state)
+        return
+
+    def forecast(self,
+                 mu_fore,
+                 var_fore,
+                 mu_state_pred,
+                 var_state_pred,
+                 mu_meas,
+                 wgt_meas,
+                 var_meas):
+        r"""
+        Forecasts the mean and variance of the measurement at time step n given observations from times [0...n-1].
+        """
+        mu_fore[:] = mu_meas
+        mu_fore += np.dot(wgt_meas, mu_state_pred)
+        var_fore[:] = var_meas
+        _quad_form(var_fore, wgt_meas, var_state_pred, self.twgt_meas)
         return

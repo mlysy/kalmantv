@@ -1,6 +1,6 @@
-cdef extern from "KalmanTV.h" namespace "kalmantv":
-    cdef cppclass KalmanTV:
-        KalmanTV(int, int) except +
+cdef extern from "KalmanTV_raw.h" namespace "kalmantv_raw":
+    cdef cppclass KalmanTV_raw:
+        KalmanTV_raw(int, int) except +
         void predict(double * mu_state_pred,
                      double * var_state_pred,
                      const double * mu_state_past,
@@ -62,3 +62,10 @@ cdef extern from "KalmanTV.h" namespace "kalmantv":
                        const double * mu_state,
                        const double * var_state,
                        const double * z_state)
+        void forecast(double * mu_fore,
+                      double * var_fore,
+                      const double * mu_state_pred,
+                      const double * var_state_pred,
+                      const double * mu_meas,
+                      const double * wgt_meas,
+                      const double * var_meas)

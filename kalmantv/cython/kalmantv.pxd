@@ -81,5 +81,12 @@ cdef class KalmanTV:
                       const double[::1, :] var_state_pred,
                       const double[::1, :] wgt_state,
                       const double[::1] z_state)
-
+    cpdef void forecast(self,
+                        double[::1] mu_fore,
+                        double[::1, :] var_fore,
+                        const double[::1] mu_state_pred,
+                        const double[::1, :] var_state_pred,
+                        const double[::1] mu_meas,
+                        const double[::1, :] wgt_meas,
+                        const double[::1, :] var_meas)
             
