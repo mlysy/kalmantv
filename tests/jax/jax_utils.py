@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 import jax.scipy as jsp
-import scipy.linalg as jscl
+import jax.scipy.linalg as jscl
 import numpy as np
 
 def _solveV(V, B):
@@ -27,7 +27,7 @@ def rand_mat(n, p=None, pd=True, dtype=np.float64, order='F'):
     """Generate a random matrix, positive definite if `pd = True`."""
     if p is None:
         p = n
-    V = jnp.array(np.random.randn(p, n))
+    V = jnp.array(np.random.randn(n, p))
     if (p == n) & pd:
         V = jnp.matmul(V, V.T)
     return V.T
