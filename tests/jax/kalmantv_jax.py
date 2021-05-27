@@ -1,10 +1,12 @@
 import jax.numpy as jnp
 import jax.scipy
-from jax_utils import _solveV
+import jax.scipy.linalg as jscl
+from jax import jit
 from jax.config import config
 config.update("jax_enable_x64", True)
 
 ### Make sure to use Jax numpy instead of Numpy
+@jit
 def predict(mu_state_past,
             var_state_past,
             mu_state,
@@ -19,6 +21,7 @@ def predict(mu_state_past,
         [wgt_state, var_state_past, wgt_state.T]) + var_state
     return mu_state_pred, var_state_pred
 
+@jit
 def update(mu_state_pred,
            var_state_pred,
            x_meas,
@@ -40,7 +43,8 @@ def update(mu_state_pred,
     var_state_filt = var_state_pred - \
         var_state_temp.dot(var_meas_state_pred)
     return mu_state_filt, var_state_filt
-    
+
+@jit
 def filter(mu_state_past,
            var_state_past,
            mu_state,
@@ -67,6 +71,7 @@ def filter(mu_state_past,
                                            var_meas=var_meas)
     return mu_state_pred, var_state_pred, mu_state_filt, var_state_filt
 
+@jit
 def smooth_mv(mu_state_next,
               var_state_next,
               mu_state_filt,
@@ -86,6 +91,7 @@ def smooth_mv(mu_state_next,
         [var_state_temp_tilde, (var_state_next - var_state_pred), var_state_temp_tilde.T])
     return mu_state_smooth, var_state_smooth
 
+@jit
 def smooth_sim(x_state_next,
                mu_state_filt,
                var_state_filt,
@@ -108,6 +114,7 @@ def smooth_sim(x_state_next,
                                 z_state)
     return x_state_smooth
 
+@jit
 def smooth(x_state_next,
            mu_state_next,
            var_state_next,
@@ -138,12 +145,31 @@ def smooth(x_state_next,
                                 z_state=z_state)
     return  x_state_smooth, mu_state_smooth, var_state_smooth,
 
+
+@jit
 def _state_sim(mu_state,
                var_state,
                z_state):
     x_state = jnp.linalg.cholesky(var_state)
     return jnp.dot(x_state, z_state) + mu_state
 
+@jit
+def _solveV(V, B):
+    """
+    Computes :math:`X = V^{-1}B` where V is a variance matrix.
+
+    Args:
+        V (ndarray(n_dim1, n_dim1)): Variance matrix V in :math:`X = V^{-1}B`.
+        B (ndarray(n_dim1, n_dim2)): Matrix B in :math:`X = V^{-1}B`.
+
+    Returns:
+        (ndarray(n_dim1, n_dim2)): Matrix X in :math:`X = V^{-1}B`
+
+    """
+    L, low = jscl.cho_factor(V)
+    return jscl.cho_solve((L, low), B)
+
+@jit
 def forecast(mu_state_pred,
              var_state_pred,
              mu_meas,

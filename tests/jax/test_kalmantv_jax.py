@@ -2,7 +2,9 @@ import unittest
 import numpy as np
 from kalmantv_py import KalmanTV as KalmanTV_py
 from kalmantv_jax import *
-from jax_utils import *
+import sys
+sys.path.append("..")
+from utils import *
 
 def rel_err(X1, X2):
     """Relative error between two numpy arrays."""
