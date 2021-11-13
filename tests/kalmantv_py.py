@@ -3,6 +3,7 @@ Time-Varying Kalman Filter and Smoother to track streaming observations.
 """
 import numpy as np
 import scipy as sp
+import scipy.stats
 
 
 class KalmanTV(object):
@@ -248,3 +249,12 @@ class KalmanTV(object):
         var_fore[:] = np.linalg.multi_dot(
             [wgt_meas, var_state_pred, wgt_meas.T]) + var_meas
         return
+
+    def logobs(self,
+               x_fore,
+               mu_fore,
+               var_fore):
+        r"""
+        Computes the joint measure density at time step n given observations from times [0...n-1].
+        """
+        return sp.stats.multivariate_normal.logpdf(x_fore, mu_fore, var_fore)

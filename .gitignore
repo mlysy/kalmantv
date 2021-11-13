@@ -8,3 +8,6 @@ __pycache__
 tee.ipynb
 tests/eigen/eigen-3.3.7/
 eigen-3.3.7
+dist/
+kalmantv.egg-info/
+kalmantv/eigen/kalmantv.cpp

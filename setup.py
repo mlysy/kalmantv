@@ -3,6 +3,11 @@ import numpy as np
 import platform
 import os
 import eigenpip as epip
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+docs_url = "https://kalmantv.readthedocs.io/en/latest/"
 
 # compile with cython if it's installed
 try:
@@ -82,12 +87,17 @@ ext_modules = [Extension("kalmantv.cython.blas",
 
 setup(
     name="kalmantv",
-    version="0.2",
+    version="0.2.0",
     author="Mohan Wu, Martin Lysy",
     author_email="mlysy@uwaterloo.ca",
     description="High-Performance Kalman Filtering and Smoothing",
+    long_description= long_description,
+    long_description_content_type='text/markdown',
     keywords="Kalman Cython",
     url="http://github.com/mlysy/kalmantv",
+    project_urls = {
+        "Documentation": docs_url
+    },
     packages=["kalmantv/cython", "kalmantv/numba", "kalmantv/eigen",
               "kalmantv", 
               #"kalmantv/include/eigen"
@@ -106,7 +116,7 @@ setup(
     install_requires=[
         'numpy>=1.16.4', 'scipy>=1.2.1',
         'numba>=0.51.2', 'Cython>=0.29.12',
-        'eigenpip @ https://github.com/mohanwu/eigenpip/archive/main.zip'
+        'eigenpip'
     ],
     extras_require={
         'docs': ['sphinx', 'sphinx_rtd_theme', 'recommonmark'],
