@@ -199,7 +199,7 @@ class KalmanTV(object):
         Note: `mu_state_pred` and `mu_state_past` cannot refer to the same location in memory.  Same for `var_state_pred` and `var_state_past`.
         """
         mu_state_pred[:] = mu_state
-        mu_state_pred += np.dot(wgt_state, mu_state_past)
+        mu_state_pred += np.dot(wgt_state, mu_state_past - mu_state)
         var_state_pred[:] = var_state
         _quad_form(var_state_pred, wgt_state, var_state_past, self.tvar_state)
 

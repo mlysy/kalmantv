@@ -99,7 +99,7 @@ setup(
         "Documentation": docs_url
     },
     packages=["kalmantv/cython", "kalmantv/numba", "kalmantv/eigen",
-              "kalmantv", 
+              "kalmantv/jax", "kalmantv", 
               #"kalmantv/include/eigen"
               ],
     #package_dir={"kalmantv/include/eigen": EIGEN_PATH},
@@ -116,7 +116,7 @@ setup(
     install_requires=[
         'numpy>=1.16.4', 'scipy>=1.2.1',
         'numba>=0.51.2', 'Cython>=0.29.12',
-        'eigenpip'
+        'jax', 'eigenpip'
     ],
     extras_require={
         'docs': ['sphinx', 'sphinx_rtd_theme', 'recommonmark'],

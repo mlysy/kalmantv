@@ -224,7 +224,7 @@ namespace kalmantv {
                                 cRefVectorXd& mu_state,
                                 cRefMatrixXd& wgt_state,
                                 cRefMatrixXd& var_state) {
-    mu_state_pred.noalias() = wgt_state * mu_state_past;
+    mu_state_pred.noalias() = wgt_state * (mu_state_past - mu_state);
     mu_state_pred += mu_state;
     // // need to assign to temporary for matrix triple product
     tvar_state_.noalias() = wgt_state * var_state_past;

@@ -137,9 +137,12 @@ cdef class KalmanTV:
         cdef char * var_trans = 'N'
         cdef char * wgt_trans2 = 'T'
         cdef int mu_alpha = 1, mu_beta = 1, var_alpha = 1, var_beta = 1
+        cdef int mu_alpha2 = -1
+        vec_copy(self.tmu_state, mu_state_past)
+        vec_add(self.tmu_state, mu_alpha2, mu_state)
         vec_copy(mu_state_pred, mu_state)
         mat_vec_mult(mu_state_pred, wgt_trans, mu_alpha,
-                     mu_beta, wgt_state, mu_state_past)
+                     mu_beta, wgt_state, self.tmu_state)
         mat_copy(var_state_pred, var_state)
         mat_triple_mult(var_state_pred, self.tvar_state, wgt_trans, var_trans, wgt_trans2,
                         var_alpha, var_beta, wgt_state, var_state_past, wgt_state)
