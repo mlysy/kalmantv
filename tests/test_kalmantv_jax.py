@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from kalmantv_py import KalmanTV as KalmanTV_py
-from kalmantv_jax import *
+from kalmantv.jax import *
 import sys
 sys.path.append("..")
 from utils import *

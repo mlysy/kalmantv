@@ -74,7 +74,7 @@ class KalmanTV(object):
         Perform one prediction step of the Kalman filter.
         Calculates :math:`\\theta_{n|n-1}` from :math:`\\theta_{n-1|n-1}`.
         """
-        mu_state_pred[:] = wgt_state.dot(mu_state_past) + mu_state
+        mu_state_pred[:] = wgt_state.dot(mu_state_past - mu_state) + mu_state
         var_state_pred[:] = np.linalg.multi_dot(
             [wgt_state, var_state_past, wgt_state.T]) + var_state
         return
