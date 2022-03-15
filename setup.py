@@ -91,7 +91,7 @@ ext_modules = [Extension("kalmantv.cython.blas",
 
 setup(
     name="kalmantv",
-    version="0.2.1",
+    version="0.2.4",
     author="Mohan Wu, Martin Lysy",
     author_email="mlysy@uwaterloo.ca",
     description="High-Performance Kalman Filtering and Smoothing",
@@ -120,7 +120,7 @@ setup(
     install_requires=[
         'numpy>=1.16.4', 'scipy>=1.2.1',
         'numba>=0.51.2', 'Cython>=0.29.12',
-        'jax', 'eigenpip'
+        'jaxlib', 'jax', 'eigenpip'
     ],
     extras_require={
         'docs': ['sphinx', 'sphinx_rtd_theme', 'recommonmark'],

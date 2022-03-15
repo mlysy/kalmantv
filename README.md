@@ -14,6 +14,7 @@
 
 - `kalmantv.numba`: This module once again uses BLAS/LAPACK but the interface is through Numba.  Here input checks are performed and the inputs can be in either C or Fortran order, and single or double precision (`float32` and `float64`).  However, C ordered arrays are first converted to Fortran order, so the latter is preferable for performance considerations.
 
+- `kalmantv.jax`: This module uses the jit-compiled auto-diff Python library Jax. 
 
 ## Installation
 
@@ -44,7 +45,7 @@ This will create the documentation in `docs/build`.
 
 ## Usage
 
-The usage of the library can be demonstrated through this simple example.  Here we use the `KalmanTV` class from the `kalmantv.cython` module.  The same class is defined in `kalmantv.eigen` and `kalmantv.numba` with exactly the same methods and signatures.
+The usage of the library can be demonstrated through this simple example.  We use the `kalmantv` functions from `kalmantv.jax`.
 
 Suppose we start with given mean and variance of the priror, `mu_state_past` and `var_state_past`, our goal is to compute `mu_state_filt` and `var_state_filt` at the next time step. We define `mu_state_pred` and `var_state_pred` for the prediction step in the Kalman filtering algorithm. More details can be found in the documentation.
 
