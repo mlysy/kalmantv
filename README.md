@@ -50,7 +50,7 @@ Suppose we start with given mean and variance of the priror, `mu_state_past` and
 
 ```python
 import numpy as np
-from kalmantv.cython import KalmanTV
+from kalmantv.jax.kalmantv import *
 n_meas = 2 # Set the size of the measurement
 n_state = 4 # Set the size of the state
 
@@ -71,19 +71,9 @@ wgt_meas = np.random.rand(n_state, n_meas).T
 var_meas = np.random.rand(n_meas, n_meas)
 var_meas = var_meas.dot(var_meas.T).T
 
-# Initialize the KalmanTV class
-ktv = KalmanTV(n_meas, n_state)
-
-# Allocate memory for storing the output
-mu_state_pred = np.empty(n_state)
-var_state_pred = np.empty((n_state, n_state), order='F')
-mu_state_filt = np.empty(n_state)
-var_state_filt = np.empty((n_state, n_state), order='F')
-
 # Run the filtering algorithm
-ktv.filter(mu_state_pred, var_state_pred,
-           mu_state_filt, var_state_filt,
-           mu_state_past, var_state_past,
-           mu_state, wgt_state, var_state,
-           x_meas, mu_meas, wgt_meas, var_meas)
+mu_state_pred, var_state_pred, mu_state_filt, var_state_filt = \
+    ktv.filter(mu_state_past, var_state_past,
+               mu_state, wgt_state, var_state,
+               x_meas, mu_meas, wgt_meas, var_meas)
 ```
