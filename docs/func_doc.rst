@@ -1,3 +1,12 @@
+Jax
+===
+
+KalmanTV Functions
+------------------
+.. automodule:: kalmantv.jax.kalmantv
+    :members:
+    :private-members:
+
 Cython
 ======
 
@@ -38,11 +47,3 @@ Gaussian Model
 .. automodule:: kalmantv.mv_gaussian
     :members:
 
-Jax
-===
-
-KalmanTV Functions
-------------------
-.. automodule:: kalmantv.jax.kalmantv
-    :members:
-    :private-members:

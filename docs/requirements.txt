@@ -2,6 +2,7 @@ numpy
 scipy
 Cython
 numba
+jaxlib
 jax
 eigenpip
 sphinx_rtd_theme
