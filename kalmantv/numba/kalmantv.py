@@ -153,13 +153,13 @@ class KalmanTV(object):
         var_state_smooth (ndarray(n_state, n_state)): Covariance of estimate for state at time n given 
             observations from times [0...N]; denoted by :math:`\Sigma_{n|N}`.
         x_state (ndarray(n_state)): Simulated state vector; :math:`x_n`.
-        mu_state (ndarray(n_state)): Transition offsets defining the solution prior; denoted by :math:`\lambda`.
-        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the solution prior; denoted by :math:`Q`.
-        var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R`.
-        x_meas (ndarray(n_meas)): Interrogated measure vector from `x_state`; :math:`y_n`.
-        mu_meas (ndarray(n_meas)): Transition offsets defining the measure prior; denoted by :math:`d`.
-        wgt_meas (ndarray(n_meas, n_state)): Transition matrix defining the measure prior; denoted by :math:`W`.
-        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`\Sigma_n`.
+        mu_state (ndarray(n_state)): Transition offsets defining the state variable; denoted by :math:`\lambda`.
+        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the state variable; denoted by :math:`Q`.
+        var_state (ndarray(n_state, n_state)): Variance matrix defining the state variable; denoted by :math:`R`.
+        x_meas (ndarray(n_meas)): Interrogated measurement vector from `x_state`; :math:`y_n`.
+        mu_meas (ndarray(n_meas)): Transition offsets defining the measurement variable; denoted by :math:`d`.
+        wgt_meas (ndarray(n_meas, n_state)): Transition matrix defining the measurement variable; denoted by :math:`W`.
+        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measurement variable; denoted by :math:`\Sigma_n`.
         z_state (ndarray(n_state)): Random vector simulated from :math:`N(0, 1)`.
         mu_fore (ndarray(n_meas)): Mean estimate for measurement at n given observations from [0...n-1]
         var_fore (ndarray(n_meas, n_meas)): Covariance of estimate for state at time n given 
@@ -199,7 +199,7 @@ class KalmanTV(object):
         Note: `mu_state_pred` and `mu_state_past` cannot refer to the same location in memory.  Same for `var_state_pred` and `var_state_past`.
         """
         mu_state_pred[:] = mu_state
-        mu_state_pred += np.dot(wgt_state, mu_state_past)
+        mu_state_pred += np.dot(wgt_state, mu_state_past - mu_state)
         var_state_pred[:] = var_state
         _quad_form(var_state_pred, wgt_state, var_state_past, self.tvar_state)
 

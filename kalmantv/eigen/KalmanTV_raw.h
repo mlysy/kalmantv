@@ -9,7 +9,7 @@
 #include <iostream>
 #include "KalmanTV.h"
 
-namespace kalmantv_raw {
+namespace kalmantv {
   using namespace kalmantv;
 
   /// Raw buffer for KalmanTV class

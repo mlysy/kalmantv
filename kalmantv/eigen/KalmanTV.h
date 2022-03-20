@@ -16,18 +16,18 @@ namespace kalmantv {
   /// Model is
   ///
   /// ~~~~
-  /// x_n = c_n + T_n x_n-1 + R_n^{1/2} eps_n   
-  /// y_n = d_n + W_n x_n + H_n^{1/2} eta_n,     
+  /// x_n = Q(x_{n-1} -\lambda) + \lambda + R_n^{1/2} \epsilon_n
+  /// y_n = d + W x_n + \Sigma_n^{1/2} \eta_n
   /// ~~~~
   ///
   /// where `x_n` is the state variable of dimension `s`, `y_n` is the measurement variable of dimension `m`, and `eps_n ~iid N(0, I_s)` and `eta_n ~iid N(0, I_m)` are noise variables independent of each other.  The `KalmanTV` library uses the following naming conventions to describe the variables above:
   ///
-  /// - The state-level variables `x_n`, `c_n`, `T_n`, `R_n` and `eps_n` are denoted by `state`.
+  /// - The state-level variables `x_n`, `c_n`, `Q_n`, `R_n` and `eps_n` are denoted by `state`.
   /// - The measurement-level variables `y_n`, `d_n`, `W_n`, `H_n` and `eta_n` are denoted by `meas`.
   /// - The output variables `x_n` and `y_n` are denoted by `x`.
   /// - The mean vectors `c_n` and `d_n` are denoted by `mu`.
   /// - The variance matrices `R_n` and `H_n` are denoted by `var`.
-  /// - The weight matrices `T_n` and `W_n` are denoted by `wgt`.
+  /// - The weight matrices `Q_n` and `W_n` are denoted by `wgt`.
   /// - The conditional means and variances are denoted by `mu_n|m = E[x_n | y_0:m]` and `Sigma_n|m = var(x_n | y_0:m)`, and jointly as `theta_n|m = (mu_n|m, Sigma_n|m)`.
   /// - Similarly, `x_n|m` denotes a draw from `p(x_n | x_n+1, y_0:m)`.
   ///
@@ -215,7 +215,7 @@ namespace kalmantv {
   /// @param[in] mu_state_past Previous state mean `mu_n-1|n-1`.
   /// @param[in] var_state_past Previous state variance `Sigma_n-1|n-1`.
   /// @param[in] mu_state Current state mean `c_n`.
-  /// @param[in] wgt_state Current state transition matrix `T_n`.
+  /// @param[in] wgt_state Current state transition matrix `Q_n`.
   /// @param[in] var_state Current state variance `R_n`.
   inline void KalmanTV::predict(RefVectorXd mu_state_pred,
                                 RefMatrixXd var_state_pred,
@@ -224,7 +224,7 @@ namespace kalmantv {
                                 cRefVectorXd& mu_state,
                                 cRefMatrixXd& wgt_state,
                                 cRefMatrixXd& var_state) {
-    mu_state_pred.noalias() = wgt_state * mu_state_past;
+    mu_state_pred.noalias() = wgt_state * (mu_state_past - mu_state);
     mu_state_pred += mu_state;
     // // need to assign to temporary for matrix triple product
     tvar_state_.noalias() = wgt_state * var_state_past;
@@ -283,7 +283,7 @@ namespace kalmantv {
   /// @param[in] mu_state_past Previous state mean `mu_n-1|n-1`.
   /// @param[in] var_state_past Previous state variance `Sigma_n-1|n-1`.
   /// @param[in] mu_state Current state mean `c_n`.
-  /// @param[in] wgt_state Current state transition matrix `T_n`.
+  /// @param[in] wgt_state Current state transition matrix `Q_n`.
   /// @param[in] var_state Current state variance `R_n`.
   /// @param[in] x_meas Current measure `y_n`.
   /// @param[in] mu_meas Current measure mean `d_n`.

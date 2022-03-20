@@ -1,4 +1,4 @@
-cdef extern from "KalmanTV_raw.h" namespace "kalmantv_raw":
+cdef extern from "KalmanTV_raw.h" namespace "kalmantv":
     cdef cppclass KalmanTV_raw:
         KalmanTV_raw(int, int) except +
         void predict(double * mu_state_pred,
