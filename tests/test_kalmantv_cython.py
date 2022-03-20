@@ -64,6 +64,12 @@ class TestKalmanTV(unittest.TestCase):
             rel_err(var_state_smooth1, var_state_smooth2), 0.0)
         self.assertAlmostEqual(rel_err(x_state_smooth1, x_state_smooth2), 0.0)
 
+    def test_forecast(self):
+        mu_fore1, var_fore1, mu_fore2, var_fore2 = \
+            utils._test_forecast(self.n_state, self.n_meas,
+                                self.ktv1, self.ktv2)
+        self.assertAlmostEqual(rel_err(mu_fore1, mu_fore2), 0.0)
+        self.assertAlmostEqual(rel_err(var_fore1, var_fore2), 0.0)
 
 if __name__ == '__main__':
     unittest.main()

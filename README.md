@@ -46,13 +46,15 @@ This will create the documentation in `docs/build`.
 
 The usage of the library can be demonstrated through this simple example.  Here we use the `KalmanTV` class from the `kalmantv.cython` module.  The same class is defined in `kalmantv.eigen` and `kalmantv.numba` with exactly the same methods and signatures.
 
+Suppose we start with given mean and variance of the state variable `mu_state_past` and `var_state_past`, our goal is to compute `mu_state_filt` and `var_state_filt` at the next time step. We define `mu_state_pred` and `var_state_pred` for the prediction step in the Kalman filtering algorithm. More details can be found in the documentation.
+
 ```python
 import numpy as np
 from kalmantv.cython import KalmanTV
 n_meas = 2 # Set the size of the measurement
 n_state = 4 # Set the size of the state
 
-# Set initial mu and var of the prior
+# Set initial mu and var of the state variable
 mu_state_past = np.random.rand(n_state) 
 var_state_past = np.random.rand(n_state, n_state)
 var_state_past = var_state_past.dot(var_state_past.T) #Ensure positive semidefinite

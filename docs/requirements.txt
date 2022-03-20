@@ -1,0 +1,7 @@
+numpy
+scipy
+Cython
+numba
+eigenpip
+sphinx_rtd_theme
+recommonmark

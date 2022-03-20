@@ -85,15 +85,17 @@ cdef class KalmanTV:
         var_state_smooth (ndarray(n_state, n_state)): Covariance of estimate for state at time n given 
             observations from times [0...N]; denoted by :math:`\Sigma_{n|N}`.
         x_state (ndarray(n_state)): Simulated state vector; :math:`x_n`.
-        mu_state (ndarray(n_state)): Transition offsets defining the solution prior; denoted by :math:`\lambda`.
-        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the solution prior; denoted by :math:`Q`.
-        var_state (ndarray(n_state, n_state)): Variance matrix defining the solution prior; denoted by :math:`R`.
-        x_meas (ndarray(n_meas)): Interrogated measure vector from `x_state`; :math:`y_n`.
-        mu_meas (ndarray(n_meas)): Transition offsets defining the measure prior; denoted by :math:`d`.
-        wgt_meas (ndarray(n_meas, n_meas)): Transition matrix defining the measure prior; denoted by :math:`W`.
-        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measure prior; denoted by :math:`\Sigma_n`.
+        mu_state (ndarray(n_state)): Transition offsets defining the state variable; denoted by :math:`\lambda`.
+        wgt_state (ndarray(n_state, n_state)): Transition matrix defining the state variable; denoted by :math:`Q`.
+        var_state (ndarray(n_state, n_state)): Variance matrix defining the state variable; denoted by :math:`R`.
+        x_meas (ndarray(n_meas)): Interrogated measurement vector from `x_state`; :math:`y_n`.
+        mu_meas (ndarray(n_meas)): Transition offsets defining the measurement variable; denoted by :math:`d`.
+        wgt_meas (ndarray(n_meas, n_state)): Transition matrix defining the measurement variable; denoted by :math:`W`.
+        var_meas (ndarray(n_meas, n_meas)): Variance matrix defining the measurement variable; denoted by :math:`\Sigma_n`.
         z_state (ndarray(n_state)): Random vector simulated from :math:`N(0, 1)`.
-
+        mu_fore (ndarray(n_meas)): Mean estimate for measurement at n given observations from [0...n-1]
+        var_fore (ndarray(n_meas, n_meas)): Covariance of estimate for state at time n given 
+            observations from times [0...n-1]
     """
 
     def __init__(self, int n_meas, int n_state):
@@ -135,6 +137,9 @@ cdef class KalmanTV:
         cdef char * var_trans = 'N'
         cdef char * wgt_trans2 = 'T'
         cdef int mu_alpha = 1, mu_beta = 1, var_alpha = 1, var_beta = 1
+        cdef int mu_alpha2 = -1
+        vec_copy(self.tmu_state, mu_state_past)
+        vec_add(self.tmu_state, mu_alpha2, mu_state)
         vec_copy(mu_state_pred, mu_state)
         mat_vec_mult(mu_state_pred, wgt_trans, mu_alpha,
                      mu_beta, wgt_state, mu_state_past)
@@ -302,4 +307,28 @@ cdef class KalmanTV:
                         mu_state_filt, var_state_filt,
                         mu_state_pred, var_state_pred,
                         wgt_state, z_state)
+        return
+    
+    cpdef void forecast(self,
+                        double[::1] mu_fore,
+                        double[::1, :] var_fore,
+                        const double[::1] mu_state_pred,
+                        const double[::1, :] var_state_pred,
+                        const double[::1] mu_meas,
+                        const double[::1, :] wgt_meas,
+                        const double[::1, :] var_meas):
+        r"""
+        Forecasts the mean and variance of the measurement variable at time step n given observations from times [0...n-1].
+        """
+        cdef char * wgt_trans = 'N'
+        cdef char * wgt_trans2 = 'T'
+        cdef char * var_trans = 'N'
+        cdef int mu_alpha = 1, mu_beta = 1, var_alpha = 1, var_beta = 1
+        vec_copy(mu_fore, mu_meas)
+        mat_vec_mult(mu_fore, wgt_trans, mu_alpha,
+                     mu_beta, wgt_meas, mu_state_pred)
+        mat_copy(var_fore, var_meas)
+        mat_triple_mult(var_fore, self.twgt_meas, wgt_trans, var_trans, wgt_trans2,
+                        var_alpha, var_beta, wgt_meas, var_state_pred, wgt_meas)
+        
         return
