@@ -124,6 +124,6 @@ setup(
     ],
     extras_require={
         'docs': ['sphinx', 'sphinx_rtd_theme', 'recommonmark'],
-        'tests': ['pandas']
+        'tests': ['pandas', 'tox']
     }
 )
