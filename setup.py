@@ -91,7 +91,7 @@ ext_modules = [Extension("kalmantv.cython.blas",
 
 setup(
     name="kalmantv",
-    version="0.2.4",
+    version="0.2.4.9000",
     author="Mohan Wu, Martin Lysy",
     author_email="mlysy@uwaterloo.ca",
     description="High-Performance Kalman Filtering and Smoothing",
