@@ -116,9 +116,9 @@ setup(
     # cython
     cmdclass=cmdclass,
     ext_modules=ext_modules,
-
+    python_requires = '>=3.8',
     install_requires=[
-        "cython>=0.29", "numpy>=1.22", 'scipy>=1.2.1',
+        "cython==0.29", "numpy>=1.22", 'scipy>=1.2.1',
         'numba>=0.51.2', 'eigenpip'
     ],
     extras_require={
