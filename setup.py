@@ -118,9 +118,8 @@ setup(
     ext_modules=ext_modules,
 
     install_requires=[
-        'numpy>=1.16.4', 'scipy>=1.2.1',
-        'numba>=0.51.2', 'Cython>=0.29.12',
-        'eigenpip'
+        "cython>=0.29", "numpy>=1.22", 'scipy>=1.2.1',
+        'numba>=0.51.2', 'eigenpip'
     ],
     extras_require={
         'docs': ['sphinx', 'sphinx_rtd_theme', 'recommonmark'],
