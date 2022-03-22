@@ -1,12 +1,12 @@
 # kalmantv 0.2.4.9000
 
 ### Testing Changes
+
 - [x] Testing is now done using tox. 
 
 ### Setup Changes
 
 - [x] Added `extra_link_args` parameter in setup for linux.
-- [x] Bumped version to 0.2.4.9000.
 - [x] Uses `eigenpip` library from PyPi instead of github.
 - [x] Added tox as requirement in testing.
 
