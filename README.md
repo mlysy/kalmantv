@@ -28,8 +28,7 @@ pip install .
 The unit tests are done against the **pykalman** library to ensure the same results.  From inside the root folder of the **kalmantv** source code:
 ```bash
 pip install .[tests]
-cd tests
-python -m unittest discover -v
+tox
 ```
 
 ## Documentation

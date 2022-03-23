@@ -15,9 +15,9 @@ class KalmanTV(object):
 
     .. math::
 
-        X_n = c + T X_n-1 + R_n^{1/2} \epsilon_n
+        x_n = Q(x_{n-1} -\lambda) + \lambda + R_n^{1/2} \epsilon_n
 
-        y_n = d + W x_n + H_n^{1/2} \eta_n
+        y_n = d + W x_n + \Sigma_n^{1/2} \eta_n
 
     where :math:`\epsilon_n` and :math:`\eta_n` are independent :math:`N(0,1)` distributions and
     :math:`X_n` denotes the state of the Kalman Filter at time n and :math:`y_n` denotes the 
@@ -73,7 +73,7 @@ class KalmanTV(object):
         Perform one prediction step of the Kalman filter.
         Calculates :math:`\\theta_{n|n-1}` from :math:`\\theta_{n-1|n-1}`.
         """
-        mu_state_pred[:] = wgt_state.dot(mu_state_past) + mu_state
+        mu_state_pred[:] = wgt_state.dot(mu_state_past - mu_state) + mu_state
         var_state_pred[:] = np.linalg.multi_dot(
             [wgt_state, var_state_past, wgt_state.T]) + var_state
         return
