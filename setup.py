@@ -21,13 +21,13 @@ if USE_CYTHON:
     # extensions = cythonize(extensions)
     cmdclass.update({"build_ext": build_ext})
 
-# readthedocs install 
+# readthedocs install
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
 # path to eigen library
 #EIGEN_PATH = epip.get_include()
 
-#def package_files(directory):
+# def package_files(directory):
 #    paths = []
 #    for (path, _, filenames) in os.walk(directory):
 #        for filename in filenames:
@@ -91,11 +91,11 @@ ext_modules = [Extension("kalmantv.cython.blas",
 
 setup(
     name="kalmantv",
-    version="0.2.4.9000",
+    version="0.2.5",
     author="Mohan Wu, Martin Lysy",
     author_email="mlysy@uwaterloo.ca",
     description="High-Performance Kalman Filtering and Smoothing",
-    long_description= long_description,
+    long_description=long_description,
     long_description_content_type='text/markdown',
     keywords="Kalman Cython",
     url="http://github.com/mlysy/kalmantv",
@@ -103,14 +103,14 @@ setup(
         "Documentation": docs_url
     },
     packages=["kalmantv/cython", "kalmantv/numba", "kalmantv/eigen",
-              "kalmantv", 
-              #"kalmantv/include/eigen"
+              "kalmantv",
+              # "kalmantv/include/eigen"
               ],
     #package_dir={"kalmantv/include/eigen": EIGEN_PATH},
     package_data={
         "kalmantv/cython": ["*.pxd"],
         "kalmantv/eigen": ["*.pxd", "*.h"],
-        #"kalmantv/include/eigen": extra_files
+        # "kalmantv/include/eigen": extra_files
     },
     #package_data = packagefiles,
     # cython

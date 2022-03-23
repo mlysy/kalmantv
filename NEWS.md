@@ -1,4 +1,4 @@
-# kalmantv 0.2.4.9000
+# kalmantv 0.2.5
 
 ### Testing Changes
 
