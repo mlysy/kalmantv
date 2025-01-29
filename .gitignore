@@ -11,3 +11,4 @@ tee.ipynb
 /eigen-3.3.7/
 /.tox/
 /kalmantv.egg-info/
+.DS_Store

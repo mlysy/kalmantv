@@ -353,9 +353,9 @@ def tri_mult(a_and_lower, x, overwrite_x=False, check_finite=True):
     # since a is typically coming from cho_factor
     # might have trash in the part that's not referenced.
     if lower:
-        a1 = scipy.linalg.tril(a1)
+        a1 = np.tril(a1)
     else:
-        a1 = scipy.linalg.triu(a1)
+        a1 = np.triu(a1)
     # reshape x into a matrix
     x1 = x1.reshape((x1.shape[0], -1), order="F")
     if a1.dtype != x1.dtype:
