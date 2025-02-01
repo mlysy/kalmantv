@@ -41,17 +41,14 @@ ext_c = ".pyx" if USE_CYTHON else ".c"
 ext_cpp = ".pyx" if USE_CYTHON else ".cpp"
 ext_modules = [Extension("kalmantv.cython.blas",
                          ["kalmantv/cython/blas"+ext_c],
-                         include_dirs=[
-                             np.get_include()],
-                         # sp.get_include()],
+                         include_dirs=[np.get_include()],
                          extra_compile_args=extra_compile_args,
                          # extra_link_args=extra_compile_args,
                          define_macros=disable_numpy_warnings,
                          language="c"),
                Extension("kalmantv.cython.kalmantv",
                          ["kalmantv/cython/kalmantv"+ext_c],
-                         include_dirs=[
-                             np.get_include()],
+                         include_dirs=[np.get_include()],
                          extra_compile_args=extra_compile_args,
                          # extra_link_args=extra_compile_args,
                          define_macros=disable_numpy_warnings,
@@ -60,15 +57,15 @@ ext_modules = [Extension("kalmantv.cython.blas",
                          ["kalmantv/eigen/kalmantv"+ext_cpp],
                          include_dirs=[
                              np.get_include(),
-                             epip.get_include()],
+                             epip.get_include()
+                         ],
                          extra_compile_args=extra_compile_args,
                          # extra_link_args=extra_compile_args,
                          define_macros=disable_numpy_warnings,
                          language="c++"),
                Extension("kalmantv.eigen.omp_init",
                          ["kalmantv/eigen/omp_init"+ext_c],
-                         include_dirs=[
-                             np.get_include()],
+                         include_dirs=[np.get_include()],
                          extra_compile_args=extra_compile_args,
                          # extra_link_args=extra_compile_args,
                          define_macros=disable_numpy_warnings,
@@ -94,25 +91,24 @@ setup(
     project_urls={
         "Documentation": docs_url
     },
-    packages=["kalmantv/cython", "kalmantv/numba", "kalmantv/eigen",
-              "kalmantv",
-              # "kalmantv/include/eigen"
-              ],
-    #package_dir={"kalmantv/include/eigen": EIGEN_PATH},
+    packages=[
+        "kalmantv/cython",
+        "kalmantv/numba",
+        "kalmantv/eigen",
+        "kalmantv",
+    ],
     package_data={
         "kalmantv/cython": ["*.pyx", "*.pxd"],
         "kalmantv/eigen": ["*.pyx", "*.pxd", "*.h"],
-        # "kalmantv/include/eigen": extra_files
     },
-    #package_data = packagefiles,
     # cython
     # cmdclass=cmdclass,
     ext_modules=ext_modules,
     python_requires='>=3.8',
-    # install_requires=[
-    #     "cython>=3.0", "numpy>=1.22", 'scipy>=1.13',
-    #     "numba>=0.51.2", "eigenpip"
-    # ],
+    install_requires=[
+        "Cython>=3.0", "numpy>=1.22", 'scipy>=1.13',
+        "numba>=0.51.2", "eigenpip"
+    ],
     extras_require={
         'docs': ['sphinx', 'sphinx_rtd_theme', 'recommonmark'],
         'tests': ['pandas', 'tox']

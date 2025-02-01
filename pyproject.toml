@@ -2,6 +2,3 @@
 python = "^3.8"
 requires = ["setuptools>=38", "wheel", "Cython>=3.0", "numpy>=1.22", "scipy>=1.2.1", "eigenpip"]
 build-backend = "setuptools.build_meta"
-
-[project]
-dependencies = ["numpy>=1.22", "scipy>=1.2.1", "numba>=0.51.2", "eigenpip"]
