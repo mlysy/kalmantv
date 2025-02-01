@@ -109,10 +109,10 @@ setup(
     # cmdclass=cmdclass,
     ext_modules=ext_modules,
     python_requires='>=3.8',
-    install_requires=[
-        "cython>=3.0", "numpy>=1.22", 'scipy>=1.13',
-        'numba>=0.51.2', 'eigenpip'
-    ],
+    # install_requires=[
+    #     "cython>=3.0", "numpy>=1.22", 'scipy>=1.13',
+    #     "numba>=0.51.2", "eigenpip"
+    # ],
     extras_require={
         'docs': ['sphinx', 'sphinx_rtd_theme', 'recommonmark'],
         'tests': ['pandas', 'tox']
