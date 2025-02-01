@@ -34,12 +34,29 @@ Various low-level backends are provided in the following modules:
 
 ## Installation
 
-For the PyPi version, simply do `pip install .`.  For the latest (stable) development version:
+For the PyPi version, simply do `pip install kalmantv`.  For the latest (stable) development version:
 
 ```bash
 git clone https://github.com/mlysy/kalmantv
 cd kalmantv
 pip install .
+```
+
+In either case, you may wish to set platform-dependent C/C++ compiler flags for building the Cython extension modules.  For example:
+
+``` bash
+# for development version
+CFLAGS="O3" CPPFLAGS="O3" pip install .
+
+# for PyPi version
+CFLAGS="O3" CPPFLAGS="O3" pip install --no-binary kalmantv
+```
+
+On multicore systems, the `kalmantv.eigen` module can be accelerated with [OpenMP]().  For example, for the development version using the GCC compiler:
+
+``` bash
+# for development version
+CFLAGS="O3" CPPFLAGS="O3 -fopenmp" pip install .
 ```
 
 ## Unit Testing

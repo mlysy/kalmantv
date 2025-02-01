@@ -1,4 +1,4 @@
-from blas cimport *
+from .blas cimport *
 import os
 import numpy as np
 cimport numpy as np
